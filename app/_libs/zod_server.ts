@@ -12,8 +12,10 @@ export type TReadShipdocSchema = z.infer<typeof readShipdocSchema>;
 
 export const readShipdocSchema = createShipdocSchema.partial();
 
-export const updateShipdocSchema = createShipdocSchema.omit({
-    shipdoc_createdAt: true,
+export const updateShipdocSchema = createShipdocSchema.pick({
+    shipdoc_uid: true,
+    shipdoc_contact: true,
+    shipdoc_updatedAt: true,
 });
 
 export const deleteShipdocSchema = createShipdocSchema.pick({
@@ -36,7 +38,9 @@ export type TReadLotSchema = z.infer<typeof readLotSchema>;
 export const readLotSchema = createLotSchema.partial();
 
 export const updateLotSchema = createLotSchema.omit({
-    lot_createdAt: true,
+    lot_uid: true,
+    lot_qty: true,
+    lot_updatedAt:true,
 });
 
 export const deleteLotSchema = createLotSchema.pick({
@@ -60,8 +64,10 @@ export const readBoxSchema = createBoxSchema.extend({
     box_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
 }).partial();
 
-export const updateBoxSchema = createBoxSchema.omit({
-    box_createdAt: true,
+export const updateBoxSchema = createBoxSchema.pick({
+    box_uid: true,
+    box_status: true,
+    box_updatedAt: true,
 });
 
 export const deleteBoxSchema = createBoxSchema.pick({
@@ -88,8 +94,11 @@ export type TReadTraySchema = z.infer<typeof readTraySchema>;
 
 export const readTraySchema = createTraySchema.partial();
 
-export const updateTraySchema = createTraySchema.omit({
-    tray_createdAt: true,
+export const updateTraySchema = createTraySchema.pick({
+    tray_uid: true,
+    box_uid: true,
+    tray_type_uid: true,
+    tray_updatedAt: true,
 });
 
 export const deleteTraySchema = createTraySchema.pick({
@@ -110,8 +119,10 @@ export type TReadTrayTypeSchema = z.infer<typeof readTrayTypeSchema>;
 
 export const readTrayTypeSchema = createTrayTypeSchema.partial();
 
-export const updateTrayTypeSchema = createTrayTypeSchema.omit({
-    tray_type_createdAt: true,
+export const updateTrayTypeSchema = createTrayTypeSchema.pick({
+    tray_type_uid: true,
+    tray_max_drive: true,
+    tray_type_updatedAt: true,
 });
 
 export const deleteTrayTypeSchema = createTrayTypeSchema.pick({
@@ -132,9 +143,10 @@ export type TReadBoxTypeSchema = z.infer<typeof readBoxTypeSchema>;
 
 export const readBoxTypeSchema = createBoxTypeSchema.partial();
 
-export const updateBoxTypeSchema = createBoxTypeSchema.omit({
-    box_part_number: true,
-    box_type_createdAt: true,
+export const updateBoxTypeSchema = createBoxTypeSchema.pick({
+    box_type_uid: true,
+    box_max_tray: true,
+    box_type_updatedAt: true,
 });
 
 export const deleteBoxTypeSchema = createBoxTypeSchema.pick({
