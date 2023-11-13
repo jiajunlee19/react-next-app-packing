@@ -10,7 +10,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
-import { flattenNestedObject } from '../_libs/nested_object';
+import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
