@@ -10,9 +10,10 @@ import { revalidatePath } from 'next/cache';
 import { signJwtToken } from '@/app/_libs/jwt';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import prisma from '@/prisma/prisma';
-import { Role } from '@prisma/client'
 import { unstable_noStore as noStore } from 'next/cache';
-import { type StatePromise } from '../_libs/types';
+import { type StatePromise } from '@/app/_libs/types';
+import { flattenNestedObject } from '@/app/_libs/nested_object';
+
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
@@ -39,7 +40,8 @@ export async function readUserByEmail(email: TEmailSchema) {
                     role: true,
                 },
             })
-            parsedResult = readUserWithoutPassSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedResult = readUserWithoutPassSchema.safeParse(flattenResult);
         }
 
         else {
@@ -82,21 +84,21 @@ export async function readUserTotalPage(itemsPerPage: number, query?: string) {
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    user_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    email: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['user_uid', 'email'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
             });
-            parsedForm = readUserWithoutPassSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readUserWithoutPassSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -148,23 +150,23 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    user_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    email: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['user_uid', 'email'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
                 skip: OFFSET,
                 take: itemsPerPage,
             });
-            parsedForm = readUserWithoutPassSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readUserWithoutPassSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -211,13 +213,22 @@ export async function readAdminTotalPage(itemsPerPage: number, query?: string) {
                     role: "admin",
                     ...(query &&
                     {
-                        email: {
-                            search: `${query}:*`,
-                        },
+                        OR: [
+                            ...(['user_uid', 'email'].map((e) => {
+                                return {
+                                    [e]: {
+                                        search: `${query}:*`,
+                                    },
+                                };
+                            })),
+                        ],
                     })
                 },
             });
-            parsedForm = readUserWithoutPassSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readUserWithoutPassSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -271,15 +282,24 @@ export async function readAdminByPage(itemsPerPage: number, currentPage: number,
                     role: "admin",
                     ...(query &&
                     {
-                        email: {
-                            search: `${query}:*`,
-                        },
+                        OR: [
+                            ...(['user_uid', 'email'].map((e) => {
+                                return {
+                                    [e]: {
+                                        search: `${query}:*`,
+                                    },
+                                };
+                            })),
+                        ],
                     })
                 },
                 skip: OFFSET,
                 take: itemsPerPage,
             });
-            parsedForm = readUserWithoutPassSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readUserWithoutPassSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -340,7 +360,8 @@ export async function signIn(email: TEmailSchema, password: TPasswordSchema) {
                     role: true,
                 },
             })
-            parsedResult = readUserSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedResult = readUserSchema.safeParse(flattenResult);
         }
 
         else {
@@ -549,6 +570,7 @@ export async function readUserById(user_uid: string) {
                     user_uid: user_uid,
                 }
             });
+            const flattenResult = flattenNestedObject(result);
             parsedForm = readUserWithoutPassSchema.safeParse(result);
         }
         else {

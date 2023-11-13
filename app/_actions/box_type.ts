@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
+import { flattenNestedObject } from '../_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
@@ -26,21 +27,21 @@ export async function readBoxTypeTotalPage(itemsPerPage: number, query?: string)
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    box_type_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    box_part_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['box_type_uid', 'box_part_number'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
             });
-            parsedForm = readBoxTypeSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readBoxTypeSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -87,23 +88,23 @@ export async function readBoxTypeByPage(itemsPerPage: number, currentPage: numbe
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    box_type_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    box_part_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['box_type_uid', 'box_part_number'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
                 skip: OFFSET,
                 take: itemsPerPage,
             });
-            parsedForm = readBoxTypeSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readBoxTypeSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -297,7 +298,8 @@ export async function readBoxTypeById(box_type_uid: string) {
                     box_type_uid: box_type_uid,
                 }
             });
-            parsedForm = readBoxTypeSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxTypeSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
