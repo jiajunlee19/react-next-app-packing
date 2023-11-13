@@ -1,9 +1,8 @@
 import { TRowData } from "@/app/_libs/types";
 
 type NestedObject = {
-    [key: string]: NestedObject
+    [key: string]: TRowData | string | number | Date,
 };
-
 
 // convert nested object
 // {
@@ -16,14 +15,14 @@ type NestedObject = {
 //     box_part_number: '503-500168', 
 //     box_max_tray: 5
 // }
-export function flattenNestedObject(obj: any) {
+export function flattenNestedObject(obj: NestedObject | TRowData) {
     let result: TRowData = {};
 
     for (const i in obj) {
 
-        // if obj[i] is an object and not an array, do recursive call
-        if ((typeof obj[i] === 'object' && !Array.isArray(obj[i]))) {
-            const temp = flattenNestedObject(obj[i]);
+        // if obj[i] is an object but not an array/Date, do recursive call
+        if (typeof obj[i] === 'object' && !Array.isArray(obj[i]) && !(obj[i] instanceof Date)) {
+            const temp = flattenNestedObject(obj[i] as TRowData);
             for (const j in temp) {
                 result[j] = temp[j];
             }
@@ -31,7 +30,7 @@ export function flattenNestedObject(obj: any) {
 
         // else, assign obj[i] into result 
         else {
-            result[i] = obj[i];
+            result[i] = (obj[i] as string | number | Date);
         }
     }
 
@@ -41,14 +40,14 @@ export function flattenNestedObject(obj: any) {
 
 // create nested object
 // data['product_name']['uom_name'] = '?'
-export function createNestedObject( base: NestedObject, names: string[], value: {[key: string]: any}) {
+export function createNestedObject( base: NestedObject, names: string[], value: TRowData) {
     // If a value is given, remove the last name and keep it for later:
     let lastName = arguments.length === 3 ? names.pop() : false;
 
     // Walk the hierarchy, creating new objects where needed.
     // If the lastName was removed, then the last object is not set yet:
     for( let i = 0; i < names.length; i++ ) {
-        base = base[ names[i] ] = base[ names[i] ] || {};
+        base = base[ names[i] ] = (base[ names[i] ] as TRowData) || {};
     }
 
     // If a value was given, set it to the last name:
@@ -66,7 +65,7 @@ export function accessNestedObject( base: NestedObject, names: string[]) {
 
     // Walk the hierarchy
     for( let i = 0; i < names.length; i++ ) {
-        base = base[ names[i] ] = base[ names[i] ] || {};
+        base = base[ names[i] ] = (base[ names[i] ] as TRowData) || {};
     }
 
     // Return the last object in the hierarchy:
