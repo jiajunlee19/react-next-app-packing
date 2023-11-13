@@ -15,8 +15,13 @@ type NestedObject = {
 //     box_part_number: '503-500168', 
 //     box_max_tray: 5
 // }
-export function flattenNestedObject(obj: NestedObject | TRowData) {
+export function flattenNestedObject(obj: NestedObject | TRowData | null) {
     let result: TRowData = {};
+
+    // if obj is null, return it
+    if (!obj) {
+        return null
+    }
 
     for (const i in obj) {
 
