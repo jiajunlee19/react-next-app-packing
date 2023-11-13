@@ -62,10 +62,15 @@ export type TReadBoxSchema = z.infer<typeof readBoxSchema>;
 
 export const readBoxSchema = createBoxSchema.extend({
     box_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    box_max_tray: z.coerce.number().int().min(1),
+    shipdoc_number: z.string().min(1),
+    shipdoc_contact: z.string().min(1),
 }).partial();
 
 export const updateBoxSchema = createBoxSchema.pick({
     box_uid: true,
+    box_type_uid: true,
+    shipdoc_uid: true,
     box_status: true,
     box_updatedAt: true,
 });
