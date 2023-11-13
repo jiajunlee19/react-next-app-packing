@@ -1,0 +1,129 @@
+// generator zod {
+//   provider       = "zod-prisma-types"
+// }
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema", "fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  schemas  = ["packing"]
+}
+
+model User {
+  user_uid String @db.Uuid @id @unique
+  email String @db.VarChar(100)
+  password String @db.VarChar(100)
+  role Role @default(user)
+  user_createdAt DateTime @db.Timestamp()
+  user_updatedAt DateTime @db.Timestamp()
+
+  @@map(name: "user")
+  @@schema("packing")
+}
+
+model BoxType {
+  box_type_uid String @db.Uuid @id @unique
+  box_part_number String @db.VarChar(50)
+  box_max_tray Int @db.Integer
+  box_type_createdAt DateTime @db.Timestamp()
+  box_type_updatedAt DateTime @db.Timestamp()
+
+  boxes Box[]
+
+  @@map(name: "box_type")
+  @@schema("packing")
+}
+
+model TrayType {
+  tray_type_uid String @db.Uuid @id @unique
+  tray_part_number String @db.VarChar(50)
+  tray_max_drive Int @db.Integer
+  tray_type_createdAt DateTime @db.Timestamp()
+  tray_type_updatedAt DateTime @db.Timestamp()
+
+  trays Tray[]
+
+  @@map(name: "tray_type")
+  @@schema("packing")
+
+}
+
+model Shipdoc {
+  shipdoc_uid String @db.Uuid @id @unique
+  shipdoc_number Int @db.Integer
+  shipdoc_contact String @db.VarChar(50)
+  shipdoc_createdAt DateTime @db.Timestamp()
+  shipdoc_updatedAt DateTime @db.Timestamp()
+
+  Boxes Box[]
+
+  @@map(name: "shipdoc")
+  @@schema("packing")
+}
+
+enum Status {
+  active
+  shipped
+
+  @@schema("packing")
+}
+
+model Box {
+  box_uid String @db.Uuid @id @unique
+  box_type_uid String @db.Uuid
+  shipdoc_uid String @db.Uuid
+  box_status Status @default(active)
+  box_createdAt DateTime @db.Timestamp()
+  box_updatedAt DateTime @db.Timestamp()
+
+  trays Tray[]
+
+  fk_box_type_uid BoxType @relation(fields: [box_type_uid], references: [box_type_uid], onDelete: Restrict, onUpdate: Restrict)
+  fk_shipdoc_uid Shipdoc @relation(fields: [shipdoc_uid], references: [shipdoc_uid], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map(name: "box")
+  @@schema("packing")
+}
+
+model Tray {
+  tray_uid String @db.Uuid @id @unique
+  box_uid String @db.Uuid
+  tray_type_uid String @db.Uuid
+  tray_createdAt DateTime @db.Timestamp()
+  tray_updatedAt DateTime @db.Timestamp()
+
+  lots Lot[]
+
+  fk_box_uid Box @relation(fields: [box_uid], references: [box_uid], onDelete: Restrict, onUpdate: Restrict)
+  fk_tray_type_uid TrayType @relation(fields: [tray_type_uid], references: [tray_type_uid], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map(name: "tray")
+  @@schema("packing")
+}
+
+model Lot {
+  lot_uid String @db.Uuid @id @unique
+  tray_uid String @db.Uuid
+  lot_id String @db.VarChar(50)
+  lot_qty Int @db.Integer
+  lot_createdAt DateTime @db.Timestamp()
+  lot_updatedAt DateTime @db.Timestamp()
+
+  fk_tray_uid Tray @relation(fields: [tray_uid], references: [tray_uid], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map(name: "lot")
+  @@schema("packing")
+}
+
+enum Role {
+  user
+  admin
+  boss
+
+  @@schema("packing")
+}

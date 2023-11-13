@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  h1 {
+    @apply text-3xl font-extrabold my-[3%] text-black dark:text-white
+  }
+
+  h2 {
+    @apply text-2xl font-bold my-[2%] text-black dark:text-white
+  }
+
+  h3 {
+    @apply text-xl font-bold my-[1%] text-black dark:text-white
+  }
+
+  p, span {
+    @apply text-black dark:text-white
+  }
+
+  a, .link {
+    @apply underline text-blue-600 whitespace-nowrap
+          hover:text-purple-500 transition 
+            dark:text-blue-300 dark:hover:text-purple-200 dark:transition
+  }
+
+  button, .btn {
+    @apply p-[1%] border rounded-xl whitespace-nowrap
+            hover:transition hover:duration-300 hover:opacity-80 hover:font-semibold
+            hover:active:font-bold
+            disabled:opacity-50 disabled:hover:opacity-50 disabled:hover:font-normal
+            border-emerald-400
+            dark:border-white
+  }
+
+  .btn-primary {
+    @apply bg-black text-white
+            dark:bg-emerald-400/10 dark:text-emerald-300
+  }
+
+  .btn-ok {
+    @apply bg-green-500 text-black
+            dark:bg-green-800 dark:text-white
+  }
+
+  .btn-cancel {
+    @apply bg-red-500 text-black
+            dark:bg-red-800 dark:text-white
+  }
+
+  label {
+    @apply block py-[1%] font-medium text-black dark:text-white
+  }
+
+  input, select {
+    @apply block w-full border rounded-sm p-[1%] mb-[0%] placeholder:italic
+          border-black bg-white text-black
+          dark:border-white dark:bg-zinc-900 dark:text-white
+  }
+
+  table {
+    @apply my-[2%] bg-white text-black whitespace-nowrap
+            dark:bg-zinc-900 dark:text-white
+  }
+
+  table, thead, tbody, th, td, tr {
+    @apply border border-solid border-black dark:border-white
+  }
+
+  .form-popout {
+    @apply fixed top-[50%] left-[50%] w-full h-full translate-x-[-50%] translate-y-[-50%] 
+            border-2 border-solid overflow-scroll
+            border-gray-200 bg-white 
+            dark:border-black dark:bg-zinc-900
+  }
+
+  .form-popout-show {
+    @apply z-50 block
+  }
+
+  .form-popout-hide {
+    @apply -z-50 hidden
+  }
+
+}
