@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
+import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
@@ -26,21 +27,21 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    tray_type_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    tray_part_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['tray_type_uid', 'tray_part_number'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
             });
-            parsedForm = readTrayTypeSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readTrayTypeSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -87,23 +88,23 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    tray_type_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    tray_part_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['tray_type_uid', 'tray_part_number'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
                 skip: OFFSET,
                 take: itemsPerPage,
             });
-            parsedForm = readTrayTypeSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readTrayTypeSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -297,7 +298,8 @@ export async function readTrayTypeById(tray_type_uid: string) {
                     tray_type_uid: tray_type_uid,
                 }
             });
-            parsedForm = readTrayTypeSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readTrayTypeSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);

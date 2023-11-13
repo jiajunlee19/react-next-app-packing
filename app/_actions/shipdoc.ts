@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
+import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
@@ -26,26 +27,21 @@ export async function readShipdocTotalPage(itemsPerPage: number, query?: string)
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    shipdoc_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    shipdoc_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    shipdoc_contact: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['shipdoc_uid', 'shipdoc_number', 'shipdoc_contact'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
             });
-            parsedForm = readShipdocSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readShipdocSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -92,28 +88,23 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
                     ...(query &&
                         {
                             OR: [
-                                {
-                                    shipdoc_uid: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    shipdoc_number: {
-                                        search: `${query}:*`,
-                                    },
-                                },
-                                {
-                                    shipdoc_contact: {
-                                        search: `${query}:*`,
-                                    },
-                                },
+                                ...(['shipdoc_uid', 'shipdoc_number', 'shipdoc_contact'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
                             ],
                         }),
                 },
                 skip: OFFSET,
                 take: itemsPerPage,
             });
-            parsedForm = readShipdocSchema.array().safeParse(result);
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readShipdocSchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -307,7 +298,8 @@ export async function readShipdocById(shipdoc_uid: string) {
                     shipdoc_uid: shipdoc_uid,
                 }
             });
-            parsedForm = readShipdocSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readShipdocSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
