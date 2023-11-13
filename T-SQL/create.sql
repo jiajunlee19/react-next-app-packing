@@ -37,7 +37,7 @@ CREATE TABLE "packing"."tray_type" (
 
 CREATE TABLE "packing"."shipdoc" (
     shipdoc_uid UNIQUEIDENTIFIER NOT NULL,
-    shipdoc_number INT NOT NULL,
+    shipdoc_number VARCHAR(50) NOT NULL,
     shipdoc_contact VARCHAR(50) NOT NULL,
     shipdoc_createdAt DATETIME NOT NULL,
     shipdoc_updatedAt DATETIME NOT NULL,

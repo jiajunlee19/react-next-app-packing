@@ -55,7 +55,7 @@ model TrayType {
 
 model Shipdoc {
   shipdoc_uid String @db.Uuid @id @unique
-  shipdoc_number Int @db.Integer
+  shipdoc_number String @db.VarChar(50)
   shipdoc_contact String @db.VarChar(50)
   shipdoc_createdAt DateTime @db.Timestamp()
   shipdoc_updatedAt DateTime @db.Timestamp()

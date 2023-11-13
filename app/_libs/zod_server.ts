@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createShipdocSchema = z.object({
     shipdoc_uid: z.string().min(1).uuid(),
-    shipdoc_number: z.coerce.number().int().min(1),
+    shipdoc_number: z.string().min(1),
     shipdoc_contact: z.string().min(1),
     shipdoc_createdAt: z.coerce.date(),
     shipdoc_updatedAt: z.coerce.date(),
