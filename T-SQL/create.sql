@@ -57,7 +57,7 @@ CREATE TABLE "packing"."box" (
     CONSTRAINT fk_box_type_uid FOREIGN KEY (box_type_uid)
         REFERENCES "packing"."box_type" (box_type_uid)
         ON DELETE NO ACTION
-        ON UPDATE NO ACTION
+        ON UPDATE NO ACTION,
     CONSTRAINT fk_shipdoc_uid FOREIGN KEY (shipdoc_uid)
         REFERENCES "packing"."shipdoc" (shipdoc_uid)
         ON DELETE NO ACTION
