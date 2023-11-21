@@ -91,7 +91,7 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    revalidatePath(`${box_uid}/tray`);
+    revalidatePath('/box/[box_uid]/tray', 'page');
     return totalPage
 };
 
@@ -182,7 +182,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
         throw new Error(getErrorMessage(err))
     }
 
-    revalidatePath(`${box_uid}/tray`);
+    revalidatePath('/box/[box_uid]/tray', 'page');
     return parsedForm.data
 };
 
@@ -242,7 +242,7 @@ export async function createTray(prevState: State, formData: FormData): StatePro
         }
     }
 
-    revalidatePath(`${box_uid}/tray`);
+    revalidatePath('/box/[box_uid]/tray', 'page');
     return { 
         message: `Successfully created tray ${parsedForm.data.tray_uid}` 
     }
@@ -297,7 +297,7 @@ export async function updateTray(prevState: State, formData: FormData): StatePro
         }
     }
 
-    revalidatePath(`${box_uid}/tray`);
+    revalidatePath('/box/[box_uid]/tray', 'page');
     return { message: `Successfully updated tray ${parsedForm.data.tray_uid}` }
 };
 
@@ -342,7 +342,7 @@ export async function deleteTray(tray_uid: string): StatePromise {
         }
     }
 
-    revalidatePath(`${box_uid}/tray`);
+    revalidatePath('/box/[box_uid]/tray', 'page');
     return { message: `Successfully deleted tray ${parsedForm.data.tray_uid}` }
 };
 
