@@ -30,7 +30,7 @@ export default async function Tray({ params, searchParams }: TrayProps) {
 
     const totalPage = await readTrayTotalPage(itemsPerPage, query, box_uid);
 
-    const pageTitle = 'Manage Tray';
+    const pageTitle = 'Box: ' + box_uid;
 
     const createButtonTitle = 'Create New Tray';
 
