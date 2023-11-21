@@ -51,6 +51,11 @@ export default function Form( {formTitle, inputType, rowData, selectOptionData, 
         // map each row into select option
         const selectOption = selectOptionData?.map((row) => {
 
+            // if null, skip adding it into the select options
+            if (!getString(row?.[key])) {
+                return
+            }
+
             return (
                 <option key={getString(row?.[key])} defaultValue={getString(row?.[key])}>{getString(row?.[key])}</option>
             );

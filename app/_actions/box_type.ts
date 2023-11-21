@@ -135,6 +135,97 @@ export async function readBoxTypeByPage(itemsPerPage: number, currentPage: numbe
     return parsedForm.data
 };
 
+export async function readBoxType() {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.boxType.findMany({
+
+            });
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readBoxTypeSchema.array().safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('schema', sql.VarChar, schema)
+                            .input('table', sql.VarChar, table)
+                            .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
+                                    FROM "@schema"."@table";
+                            `;
+            parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/box_type');
+    return parsedForm.data
+};
+
+export async function readBoxTypeUid(box_part_number: string) {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.boxType.findFirst({
+                where: {
+                    box_part_number: box_part_number,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxTypeSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('schema', sql.VarChar, schema)
+                            .input('table', sql.VarChar, table)
+                            .input('box_part_number', sql.VarChar, box_part_number)
+                            .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
+                                    FROM "@schema"."@table"
+                                    WHERE box_part_number = @box_part_number;
+                            `;
+            parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/box_type');
+    return parsedForm.data
+};
+
 export async function createBoxType(prevState: State, formData: FormData): StatePromise {
 
     const now = new Date();

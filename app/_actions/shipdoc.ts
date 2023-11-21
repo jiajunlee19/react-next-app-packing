@@ -135,6 +135,96 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
     return parsedForm.data
 };
 
+export async function readShipdoc() {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.shipdoc.findMany({
+
+            });
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readShipdocSchema.array().safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('schema', sql.VarChar, schema)
+                            .input('table', sql.VarChar, table)
+                            .query`SELECT shipdoc_uid, box_part_number, box_max_tray, shipdoc_createdAt, shipdoc_updatedAt 
+                                    FROM "@schema"."@table";
+                            `;
+            parsedForm = readShipdocSchema.array().safeParse(result.recordset);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/shipdoc');
+    return parsedForm.data
+};
+
+export async function readShipdocUid(shipdoc_number: string) {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.shipdoc.findFirst({
+                where: {
+                    shipdoc_number: shipdoc_number,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readShipdocSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('schema', sql.VarChar, schema)
+                            .input('table', sql.VarChar, table)
+                            .input('shipdoc_number', sql.VarChar, shipdoc_number)
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                                    FROM "@schema"."@table"
+                                    WHERE shipdoc_number = @shipdoc_number;
+                            `;
+            parsedForm = readShipdocSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/shipdoc');
+    return parsedForm.data
+};
+
 export async function createShipdoc(prevState: State, formData: FormData): StatePromise {
 
     const now = new Date();

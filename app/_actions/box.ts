@@ -11,6 +11,8 @@ import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
+import { readBoxTypeUid } from '@/app/_actions/box_type';
+import { readShipdocUid } from './shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
@@ -219,10 +221,15 @@ export async function createBox(prevState: State, formData: FormData): StateProm
 
     const now = new Date();
 
+    const [{box_type_uid}, {shipdoc_uid}] = await Promise.all ([
+        await readBoxTypeUid( formData.get('box_part_number') as string ),
+        await readShipdocUid( formData.get('shipdoc_number') as string ),
+    ]);
+
     const parsedForm = createBoxSchema.safeParse({
-        box_uid: uuidv5(formData.get('box_type_uid') as string, UUID5_SECRET),
-        box_type_uid: formData.get('box_type_uid'),
-        shipdoc_uid: formData.get('shipdoc_uid'),
+        box_uid: uuidv5((box_type_uid as string + shipdoc_uid as string + now.toString()), UUID5_SECRET),
+        box_type_uid: box_type_uid,
+        shipdoc_uid: shipdoc_uid,
         box_status: 'active',
         box_createdAt: now,
         box_updatedAt: now,
