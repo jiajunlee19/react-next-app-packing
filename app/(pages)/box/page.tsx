@@ -31,7 +31,7 @@ export default async function Box({ searchParams }: { searchParams?: { itemsPerP
     const primaryKey: (keyof TReadBoxSchema) = 'box_uid';
 
     // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = "/box/[placeholder-id]/update";
+    const hrefUpdate = "/box/[placeholder-id]/tray";
 
     const deleteAction = deleteBox;
 

@@ -97,7 +97,10 @@ export const createTraySchema = z.object({
 
 export type TReadTraySchema = z.infer<typeof readTraySchema>;
 
-export const readTraySchema = createTraySchema.partial();
+export const readTraySchema = createTraySchema.extend({
+    tray_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    tray_max_drive: z.coerce.number().int().min(1),
+}).partial();
 
 export const updateTraySchema = createTraySchema.pick({
     tray_uid: true,

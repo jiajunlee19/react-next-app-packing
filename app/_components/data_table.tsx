@@ -7,16 +7,23 @@ type DataTableProps = {
     itemsPerPage: number,
     currentPage: number,
     query?: string,
-    readAction: (itemsPerPage: number, currentPage: number, query?: string) => Promise<TRowData[]>
+    id?: string,
+    readAction: (itemsPerPage: number, currentPage: number, query?: string, id?: string) => Promise<TRowData[]>
     columnListDisplay: string[],
     primaryKey: string,
     hrefUpdate?: string,
     deleteAction?: (deleteId: string) => StatePromise, 
 };
 
-export default async function DataTable( { itemsPerPage, currentPage, query, readAction, columnListDisplay, primaryKey, hrefUpdate, deleteAction }: DataTableProps ) {
+export default async function DataTable( { itemsPerPage, currentPage, query, id, readAction, columnListDisplay, primaryKey, hrefUpdate, deleteAction }: DataTableProps ) {
     
-    const fetchedData = await readAction(itemsPerPage, currentPage, query);
+    let fetchedData: TRowData[];
+    if (!id) {
+        fetchedData = await readAction(itemsPerPage, currentPage, query);
+    }
+    else {
+        fetchedData = await readAction(itemsPerPage, currentPage, query, id);
+    }
 
     // Filter columns based on columnList provided
     const filteredData = fetchedData.map((row) => {
