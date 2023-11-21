@@ -12,7 +12,7 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readBoxTypeUid } from '@/app/_actions/box_type';
-import { readShipdocUid } from './shipdoc';
+import { readShipdocUid } from '@/app/_actions/shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 const schema = 'packing';
