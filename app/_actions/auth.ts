@@ -16,8 +16,6 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
-const schema = 'packing';
-const table = 'user';
 
 export async function readUserByEmail(email: TEmailSchema) {
     noStore();
@@ -47,11 +45,9 @@ export async function readUserByEmail(email: TEmailSchema) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('email', sql.VarChar, parsedForm.data)
                             .query`SELECT user_uid, email, role
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE email = @email;
                             `;
             parsedResult = readUserWithoutPassSchema.safeParse(result.recordset[0]);
@@ -70,7 +66,6 @@ export async function readUserByEmail(email: TEmailSchema) {
 
 export async function readUserTotalPage(itemsPerPage: number, query?: string) {
     noStore();
-    const queryChecked = query && "";
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -103,11 +98,9 @@ export async function readUserTotalPage(itemsPerPage: number, query?: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT user_uid, email, role 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE (user_uid like @query OR email like @query);
                             `;
             parsedForm = readUserWithoutPassSchema.array().safeParse(result.recordset);
@@ -135,7 +128,6 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -171,14 +163,13 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT user_uid, email, role 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE (user_uid like @query OR email like @query)
+                                    ORDER BY email asc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -233,12 +224,10 @@ export async function readAdminTotalPage(itemsPerPage: number, query?: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('role', sql.VarChar, 'admin')
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT user_uid, email, role 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE role = @role
                                     AND (email like @query);
                             `;
@@ -304,16 +293,15 @@ export async function readAdminByPage(itemsPerPage: number, currentPage: number,
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('role', sql.VarChar, 'admin')
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT user_uid, email, role 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE role = @role
                                     AND (email like @query)
+                                    ORDER BY email asc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -367,11 +355,9 @@ export async function signIn(email: TEmailSchema, password: TPasswordSchema) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('email', sql.VarChar, parsedForm.data.email)
                             .query`SELECT user_uid, email, password, role
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE email = @email;
                             `;
             parsedResult = readUserSchema.safeParse(result.recordset);
@@ -439,15 +425,13 @@ export async function signUp(email: TEmailSchema, password: TPasswordSchema): St
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('email', sql.VarChar, parsedForm.data.email)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
                             .input('role', sql.VarChar, parsedForm.data.role)
                             .input('user_createdAt', sql.DateTime, parsedForm.data.user_createdAt)
                             .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
-                            .query`INSERT INTO "@schema"."@table" 
+                            .query`INSERT INTO "packing"."user" 
                                     (user_uid, email, password, role, user_createdAt, user_updatedAt)
                                     VALUES (@user_uid, @email, @password, @role, @user_createdAt, @user_updatedAt);
                             `;
@@ -493,12 +477,10 @@ export async function updateUser(formData: FormData): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
                             .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."user" 
                                     SET password = @password, user_updatedAt = @user_updatedAt
                                     WHERE user_uid = @user_uid;
                             `;
@@ -541,10 +523,8 @@ export async function deleteUser(user_uid: string): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
-                            .query`DELETE FROM "@schema"."@table" 
+                            .query`DELETE FROM "packing"."user" 
                                     WHERE user_uid = @user_uid;
                             `;
         }
@@ -576,10 +556,8 @@ export async function readUserById(user_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT user_uid, email, role, user_createdAt, user_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE user_uid = @user_uid;
                             `;
             parsedForm = readUserWithoutPassSchema.safeParse(result.recordset[0]);
@@ -627,12 +605,10 @@ export async function updateRole(formData: FormData): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('role', sql.VarChar, parsedForm.data.role)
                             .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."user" 
                                     SET role = @role, user_updatedAt = @user_updatedAt
                                     WHERE user_uid = @user_uid;
                             `;

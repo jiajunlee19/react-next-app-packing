@@ -13,12 +13,9 @@ import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
-const schema = 'packing';
-const table = 'box_type';
 
 export async function readBoxTypeTotalPage(itemsPerPage: number, query?: string) {
     noStore();
-    const queryChecked = query && "";
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -46,11 +43,9 @@ export async function readBoxTypeTotalPage(itemsPerPage: number, query?: string)
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."box_type"
                                     WHERE (box_type_uid like @query OR box_part_number like @query);
                             `;
             parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
@@ -78,7 +73,6 @@ export async function readBoxTypeByPage(itemsPerPage: number, currentPage: numbe
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -109,14 +103,13 @@ export async function readBoxTypeByPage(itemsPerPage: number, currentPage: numbe
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."box_type"
                                     WHERE (box_type_uid like @query OR box_part_number like @query)
+                                    ORDER BY box_part_number asc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -159,10 +152,8 @@ export async function readBoxType() {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "@schema"."@table";
+                                    FROM "packing"."user";
                             `;
             parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
         }
@@ -203,11 +194,9 @@ export async function readBoxTypeUid(box_part_number: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_part_number', sql.VarChar, box_part_number)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."user"
                                     WHERE box_part_number = @box_part_number;
                             `;
             parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
@@ -255,14 +244,12 @@ export async function createBoxType(prevState: State, formData: FormData): State
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
                             .input('box_part_number', sql.VarChar, parsedForm.data.box_part_number)
                             .input('box_max_tray', sql.Int, parsedForm.data.box_max_tray)
                             .input('box_type_createdAt', sql.DateTime, parsedForm.data.box_type_createdAt)
                             .input('box_type_updatedAt', sql.DateTime, parsedForm.data.box_type_updatedAt)
-                            .query`INSERT INTO "@schema"."@table" 
+                            .query`INSERT INTO "packing"."box_type" 
                                     (box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt)
                                     VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_createdAt, @box_type_updatedAt);
                             `;
@@ -312,12 +299,10 @@ export async function updateBoxType(prevState: State, formData: FormData): State
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
                             .input('box_max_tray', sql.Int, parsedForm.data.box_max_tray)
                             .input('box_type_updatedAt', sql.DateTime, parsedForm.data.box_type_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."box_type" 
                                     SET box_max_tray = @box_max_tray, box_type_updatedAt = @box_type_updatedAt
                                     WHERE box_type_uid = @box_type_uid;
                             `;
@@ -360,10 +345,8 @@ export async function deleteBoxType(box_type_uid: string): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
-                            .query`DELETE FROM "@schema"."@table" 
+                            .query`DELETE FROM "packing"."box_type" 
                                     WHERE box_type_uid = @box_type_uid;
                             `;
         }
@@ -395,10 +378,8 @@ export async function readBoxTypeById(box_type_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."box_type"
                                     WHERE box_type_uid = @box_type_uid;
                             `;
             parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
