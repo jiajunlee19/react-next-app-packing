@@ -37,7 +37,7 @@ export type TReadLotSchema = z.infer<typeof readLotSchema>;
 
 export const readLotSchema = createLotSchema.partial();
 
-export const updateLotSchema = createLotSchema.omit({
+export const updateLotSchema = createLotSchema.pick({
     lot_uid: true,
     lot_qty: true,
     lot_updatedAt:true,

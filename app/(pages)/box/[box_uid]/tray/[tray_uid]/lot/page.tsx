@@ -14,7 +14,10 @@ export const metadata: Metadata = {
 };
 
 type LotProps =  { 
-    params: {box_uid: string}, 
+    params: {
+        box_uid: string,
+        tray_uid: string,
+    }, 
     searchParams?: {
         itemsPerPage?: string, 
         currentPage?: string, 
@@ -25,22 +28,23 @@ type LotProps =  {
 export default async function Lot({ params, searchParams }: LotProps) {
 
     const box_uid = params.box_uid;
+    const tray_uid = params.tray_uid;
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
     const query = searchParams?.query || undefined;
 
-    const totalPage = await readLotTotalPage(itemsPerPage, query, box_uid);
+    const totalPage = await readLotTotalPage(itemsPerPage, query, tray_uid);
 
     const createButtonTitle = 'Create New Lot';
 
     const readAction = readLotByPage;
 
-    const columnListDisplay: (keyof TReadLotSchema)[] = ['lot_uid', 'lot_part_number', 'lot_max_drive', 'lot_createdAt', 'lot_updatedAt'];
+    const columnListDisplay: (keyof TReadLotSchema)[] = ['lot_uid', 'tray_uid', 'lot_id', 'lot_qty', 'lot_createdAt', 'lot_updatedAt'];
 
     const primaryKey: (keyof TReadLotSchema) = 'lot_uid';
 
-    // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = `/box/${box_uid}/lot/[placeholder-id]/update`;
+    // "[placeholder-id]" will be replaced by "id" for each row in 
+    const hrefUpdate = `/box/${box_uid}/tray/${tray_uid}/lot/[placeholder-id]/update`;
 
     const deleteAction = deleteLot;
 
@@ -49,17 +53,18 @@ export default async function Lot({ params, searchParams }: LotProps) {
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
                     {label: 'Box', href: '/box', active: false},
-                    {label: `${box_uid}`, href: `/box/${box_uid}/lot`, active: true}
+                    {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
+                    {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: true},
                 ]} />
             </div>
 
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/lot/create`}>
+            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
                 <button className="btn-primary w-min">
                     {createButtonTitle}
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={box_uid} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={tray_uid} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

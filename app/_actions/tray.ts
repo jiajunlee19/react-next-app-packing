@@ -236,12 +236,12 @@ export async function createTray(prevState: State, formData: FormData): StatePro
 };
 
 
-export async function updateTray(prevState: State, formData: FormData): StatePromise {
+export async function updateTray(tray_uid: string): StatePromise {
 
     const now = new Date();
 
     const parsedForm = updateTraySchema.safeParse({
-        tray_uid: formData.get('tray_uid'),
+        tray_uid: tray_uid,
         tray_updatedAt: now,
     });
 

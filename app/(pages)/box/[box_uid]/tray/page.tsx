@@ -40,7 +40,7 @@ export default async function Tray({ params, searchParams }: TrayProps) {
     const primaryKey: (keyof TReadTraySchema) = 'tray_uid';
 
     // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = `/box/${box_uid}/tray/[placeholder-id]/update`;
+    const hrefUpdate = `/box/${box_uid}/tray/[placeholder-id]/lot`;
 
     const deleteAction = deleteTray;
 
@@ -49,7 +49,7 @@ export default async function Tray({ params, searchParams }: TrayProps) {
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
                     {label: 'Box', href: '/box', active: false},
-                    {label: `${box_uid}`, href: `/box/${box_uid}/tray`, active: true}
+                    {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: true}
                 ]} />
             </div>
 

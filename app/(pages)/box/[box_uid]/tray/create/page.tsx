@@ -21,7 +21,7 @@ export default async function CreateTray({ params }: { params: { box_uid: string
         <>  
             <Breadcrumbs breadcrumbs={[
                 {label: 'Box', href: '/box', active: false},
-                {label: `${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
+                {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
                 {label: "Create Tray", href: `/box/${box_uid}/tray/create`, active: true}
             ]} />
             <Form 
