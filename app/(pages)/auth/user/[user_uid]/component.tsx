@@ -3,7 +3,7 @@
 import { deleteUser, updateUser } from "@/app/_actions/auth";
 import SubmitButton from "@/app/_components/basic/button_submit";
 import { signOut, useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useRef } from "react";
 import { toast } from "react-hot-toast";
 
@@ -14,6 +14,9 @@ export default function UserComponent({ params }: { params: {user_uid: string} }
     if (!session || session.user.user_uid !== params.user_uid) {
         redirect("/denied");
     }
+
+    const searchParams = useSearchParams();
+    const callBackUrl = searchParams.get('callbackUrl') || '/';
 
     const formRef = useRef<HTMLFormElement>(null);
     const passwordRef = useRef("");
@@ -62,7 +65,7 @@ export default function UserComponent({ params }: { params: {user_uid: string} }
                             toast.success(result.message);
                             await signOut({
                                 redirect: true,
-                                callbackUrl: "/",
+                                callbackUrl: callBackUrl,
                             });
                         }
                     }
