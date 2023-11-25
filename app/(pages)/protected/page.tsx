@@ -8,16 +8,11 @@ export const metadata: Metadata = {
 export default function ProtectedPage() {
     return (
         <>
-            <h1>Protected Page for Admin</h1>
-            {/* <nav>
-                {authNavLinks.map((link) => {
-                    return (
-                        <li className="text-black dark:text-white" key={link.name}>
-                            <Link href={link.href}>{link.name}</Link>
-                        </li>
-                    )
-                })}
-            </nav> */}
+            <div className="h-full align-middle flex flex-column items-center justify-center gap-4">
+                <span className="font-semibold italic">Protected Page</span>
+                <span>|</span>
+                <span className="font-semibold italic" >Access Denied</span>
+            </div>
         </>
     );
 };

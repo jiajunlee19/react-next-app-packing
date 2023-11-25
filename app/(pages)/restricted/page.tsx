@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,24 +7,13 @@ export const metadata: Metadata = {
 
 export default function RestrictedPage() {
 
-    const authNavLinks = [
-        { name: "Manage User", href: "/restricted/auth/user" },
-        { name: "Update User Role by Email", href: "/restricted/auth/updateRoleByEmail" },
-    ];
-
     return (
         <>
-            <h1>Restricted Page for Boss</h1>
-            <h3>Auth</h3>
-            <nav>
-                {authNavLinks.map((link) => {
-                    return (
-                        <li className="text-black dark:text-white" key={link.name}>
-                            <Link href={link.href}>{link.name}</Link>
-                        </li>
-                    )
-                })}
-            </nav>
+            <div className="h-full align-middle flex flex-column items-center justify-center gap-4">
+                <span className="font-semibold italic">Restricted Page</span>
+                <span>|</span>
+                <span className="font-semibold italic" >Access Denied</span>
+            </div>
         </>
     );
 };
