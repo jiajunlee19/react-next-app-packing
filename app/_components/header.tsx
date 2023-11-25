@@ -31,12 +31,18 @@ export default function Header() {
     ];
 
     const actionNavLinks = [
-        { name: "Manage Box Type", href: "/box_type", icon: "" },
-        { name: "Manage Tray Type", href: "/tray_type", icon: "" },
-        { name: "Manage Shipdoc", href: "/shipdoc", icon: "" },
         { name: "Manage Box", href: "/box", icon: "" },
-        { name: "Manage Tray", href: "/tray", icon: "" },
-        { name: "Manage Lot", href: "/lot", icon: "" },
+    ];
+
+    const actionNavLinksProtected = [
+        { name: "Manage Box Type", href: "/protected/box_type", icon: "" },
+        { name: "Manage Tray Type", href: "/protected/tray_type", icon: "" },
+        { name: "Manage Shipdoc", href: "/protected/shipdoc", icon: "" },
+    ];
+
+    const actionNavLinksRestricted = [
+        { name: "User List", href: "/restricted/auth/user", icon: "" },
+        { name: "Update Role by Email", href: "/restricted/auth/updateRoleByEmail", icon: "" },
     ];
 
     const pathname = usePathname();
@@ -174,7 +180,7 @@ export default function Header() {
                             <h2>Actions</h2>
                             <div className="relative my-3 pl-2">
                                 <div className="absolute inset-x-0 top-0 h-16 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5 origin-[50%_50%_1px]" />
-                                <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5 transform-none origin-[50%_50%_1px]" />
+                                <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/50 transform-none origin-[50%_50%_1px]" />
                                 {/* <div className="absolute top-1 left-2 h-6 w-px bg-emerald-500 transform-none origin-[50%_50%_1px]" /> */}
                                 <ul role="list">
                                     {actionNavLinks.map((link) => {
@@ -186,6 +192,46 @@ export default function Header() {
                                     })}
                                 </ul>
                             </div>
+
+                            {session?.user.role === 'admin' || session?.user.role === 'boss' &&
+                            <>
+                                <h2>Protected Actions</h2>
+                                <div className="relative my-3 pl-2">
+                                    <div className="absolute inset-x-0 top-0 h-16 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5 origin-[50%_50%_1px]" />
+                                    <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/50 transform-none origin-[50%_50%_1px]" />
+                                    {/* <div className="absolute top-1 left-2 h-6 w-px bg-emerald-500 transform-none origin-[50%_50%_1px]" /> */}
+                                    <ul role="list">
+                                        {actionNavLinksProtected.map((link) => {
+                                            return (
+                                                <li key={link.name} className="relative">
+                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            </>
+                            }
+
+                            {session?.user.role === 'boss' &&
+                            <>
+                                <h2>Restricted Actions</h2>
+                                <div className="relative my-3 pl-2">
+                                    <div className="absolute inset-x-0 top-0 h-16 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5 origin-[50%_50%_1px]" />
+                                    <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/50 transform-none origin-[50%_50%_1px]" />
+                                    {/* <div className="absolute top-1 left-2 h-6 w-px bg-emerald-500 transform-none origin-[50%_50%_1px]" /> */}
+                                    <ul role="list">
+                                        {actionNavLinksRestricted.map((link) => {
+                                            return (
+                                                <li key={link.name} className="relative">
+                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            </>
+                            }
                         </li>
 
                         <li className="pt-3 md:hidden">
