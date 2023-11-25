@@ -12,7 +12,6 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayTypeUid } from '@/app/_actions/tray_type';
-import { readShipdocUid } from '@/app/_actions/shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
@@ -183,16 +182,14 @@ export async function createTray(prevState: State, formData: FormData): StatePro
 
     const now = new Date();
 
-    const [{tray_type_uid}, {shipdoc_uid}] = await Promise.all ([
+    const [{tray_type_uid}] = await Promise.all ([
         await readTrayTypeUid( formData.get('tray_part_number') as string ),
-        await readShipdocUid( formData.get('box_uid') as string ),
     ]);
 
     const parsedForm = createTraySchema.safeParse({
-        tray_uid: uuidv5((tray_type_uid as string + shipdoc_uid as string + now.toString()), UUID5_SECRET),
+        tray_uid: uuidv5((tray_type_uid as string + formData.get('box_uid') as string + now.toString()), UUID5_SECRET),
+        box_uid: formData.get('box_uid'),
         tray_type_uid: tray_type_uid,
-        shipdoc_uid: shipdoc_uid,
-        box_uid: box_uid,
         tray_createdAt: now,
         tray_updatedAt: now,
     });
@@ -215,14 +212,13 @@ export async function createTray(prevState: State, formData: FormData): StatePro
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
+                            .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
-                            .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
-                            .input('tray_status', sql.VarChar, parsedForm.data.tray_status)
                             .input('tray_createdAt', sql.DateTime, parsedForm.data.tray_createdAt)
                             .input('tray_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
                             .query`INSERT INTO "packing"."tray" 
-                                    (tray_uid, tray_type_uid, shipdoc_uid, tray_status, tray_createdAt, tray_updatedAt)
-                                    VALUES (@tray_uid, @tray_type_uid, @shipdoc_uid, @tray_status, @tray_createdAt, @tray_updatedAt);
+                                    (tray_uid, box_uid, tray_type_uid, tray_createdAt, tray_updatedAt)
+                                    VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_createdAt, @tray_updatedAt);
                             `;
         }
     } 
@@ -246,7 +242,6 @@ export async function updateTray(prevState: State, formData: FormData): StatePro
 
     const parsedForm = updateTraySchema.safeParse({
         tray_uid: formData.get('tray_uid'),
-        shipdoc_uid: formData.get('shipdoc_uid'),
         tray_updatedAt: now,
     });
 
@@ -271,10 +266,9 @@ export async function updateTray(prevState: State, formData: FormData): StatePro
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
-                            .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
-                            .input('tray_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
+                            .input('box_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
                             .query`UPDATE "packing"."tray" 
-                                    SET shipdoc_uid = @shipdoc_uid, tray_updatedAt = @tray_updatedAt
+                                    SET tray_updatedAt = @tray_updatedAt
                                     WHERE tray_uid = @tray_uid;
                             `;
         }
@@ -348,7 +342,8 @@ export async function readTrayById(tray_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .query`SELECT tray_uid, tray_type_uid, shipdoc_uid, tray_createdAt, tray_updatedAt 
+                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .query`SELECT tray_uid, box_uid, tray_type_uid, tray_createdAt, tray_updatedAt 
                                     FROM "packing"."tray"
                                     WHERE tray_uid = @tray_uid;
                             `;

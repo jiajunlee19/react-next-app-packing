@@ -379,6 +379,7 @@ export async function readBoxById(box_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
+                            .input('box_uid', sql.VarChar, box_uid)
                             .query`SELECT box_uid, box_type_uid, shipdoc_uid, box_createdAt, box_updatedAt 
                                     FROM "packing"."box"
                                     WHERE box_uid = @box_uid;

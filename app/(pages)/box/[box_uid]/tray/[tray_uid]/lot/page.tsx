@@ -1,19 +1,19 @@
-import { deleteTray, readTrayTotalPage, readTrayByPage } from "@/app/_actions/tray";
+import { deleteLot, readLotTotalPage, readLotByPage } from "@/app/_actions/lot";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
-import { type TReadTraySchema } from '@/app/_libs/zod_server';
+import { type TReadLotSchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Tray',
+    title: 'Lot',
     description: 'Developed by jiajunlee',
 };
 
-type TrayProps =  { 
+type LotProps =  { 
     params: {box_uid: string}, 
     searchParams?: {
         itemsPerPage?: string, 
@@ -22,38 +22,38 @@ type TrayProps =  {
     },
 };
 
-export default async function Tray({ params, searchParams }: TrayProps) {
+export default async function Lot({ params, searchParams }: LotProps) {
 
     const box_uid = params.box_uid;
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
     const query = searchParams?.query || undefined;
 
-    const totalPage = await readTrayTotalPage(itemsPerPage, query, box_uid);
+    const totalPage = await readLotTotalPage(itemsPerPage, query, box_uid);
 
-    const createButtonTitle = 'Create New Tray';
+    const createButtonTitle = 'Create New Lot';
 
-    const readAction = readTrayByPage;
+    const readAction = readLotByPage;
 
-    const columnListDisplay: (keyof TReadTraySchema)[] = ['tray_uid', 'tray_part_number', 'tray_max_drive', 'tray_createdAt', 'tray_updatedAt'];
+    const columnListDisplay: (keyof TReadLotSchema)[] = ['lot_uid', 'lot_part_number', 'lot_max_drive', 'lot_createdAt', 'lot_updatedAt'];
 
-    const primaryKey: (keyof TReadTraySchema) = 'tray_uid';
+    const primaryKey: (keyof TReadLotSchema) = 'lot_uid';
 
     // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = `/box/${box_uid}/tray/[placeholder-id]/update`;
+    const hrefUpdate = `/box/${box_uid}/lot/[placeholder-id]/update`;
 
-    const deleteAction = deleteTray;
+    const deleteAction = deleteLot;
 
     return (
         <>
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
                     {label: 'Box', href: '/box', active: false},
-                    {label: `${box_uid}`, href: `/box/${box_uid}/tray`, active: true}
+                    {label: `${box_uid}`, href: `/box/${box_uid}/lot`, active: true}
                 ]} />
             </div>
 
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/create`}>
+            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/lot/create`}>
                 <button className="btn-primary w-min">
                     {createButtonTitle}
                 </button>
