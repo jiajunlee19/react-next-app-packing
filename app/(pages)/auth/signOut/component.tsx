@@ -2,15 +2,18 @@
 
 import { signOut, useSession } from "next-auth/react";
 import SubmitButton from "@/app/_components/basic/button_submit";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 
-export default function SignInComponent() {
+export default function SignOutComponent() {
 
     const { data: session } = useSession();
 
     if (!session) {
         redirect("/");
     }
+
+    const searchParams = useSearchParams();
+    const callBackUrl = searchParams.get('callbackUrl') || '/';
 
     const handleSubmitClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 
@@ -30,7 +33,7 @@ export default function SignInComponent() {
             <form action={ async (formData) => {
                         const result = await signOut({
                             redirect: true,
-                            callbackUrl: "/",
+                            callbackUrl: callBackUrl,
                         });
                     }
                 }>

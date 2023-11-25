@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
 import SubmitButton from "@/app/_components/basic/button_submit";
 import { toast } from "react-hot-toast";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 
 export default function SignInComponent() {
 
@@ -13,6 +13,9 @@ export default function SignInComponent() {
     if (session) {
         redirect("/");
     }
+
+    const searchParams = useSearchParams();
+    const callBackUrl = searchParams.get('callbackUrl') || '/';
 
     const formRef = useRef<HTMLFormElement>(null);
     const emailRef = useRef("");
@@ -37,8 +40,8 @@ export default function SignInComponent() {
                         const result = await signIn("credentials", {
                             email: emailRef.current,
                             password: passwordRef.current,
-                            redirect: false,
-                            callbackUrl: "/",
+                            redirect: true,
+                            callbackUrl: callBackUrl,
                         });
                         formRef.current?.reset();
                         
