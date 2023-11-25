@@ -2,7 +2,7 @@
 
 export default function notFoundPage() {
     return (
-        <div className="h-[100vh] align-middle flex flex-column items-center justify-center gap-4">
+        <div className="h-full align-middle flex flex-column items-center justify-center gap-4">
             <span className="font-semibold">404</span>
             <span>|</span>
             <span className="font-semibold" >This page could not be found.</span>
