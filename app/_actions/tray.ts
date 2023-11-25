@@ -15,12 +15,9 @@ import { readTrayTypeUid } from '@/app/_actions/tray_type';
 import { readShipdocUid } from '@/app/_actions/shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
-const schema = 'packing';
-const table = 'tray';
 
 export async function readTrayTotalPage(itemsPerPage: number, query?: string, box_uid?: string) {
     noStore();
-    const queryChecked = query && "";
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -66,15 +63,13 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_uid', sql.VarChar, box_uid)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    FROM "@schema"."@table" t
-                                    INNER JOIN "@schema"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "@schema"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
+                                    FROM "packing"."tray" t
+                                    INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
@@ -105,7 +100,6 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -154,20 +148,19 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_uid', sql.VarChar, box_uid)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    FROM "@schema"."@table" t
-                                    INNER JOIN "@schema"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "@schema"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
+                                    FROM "packing"."tray" t
+                                    INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
+                                    ORDER BY t.tray_updatedAt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -221,15 +214,13 @@ export async function createTray(prevState: State, formData: FormData): StatePro
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('tray_status', sql.VarChar, parsedForm.data.tray_status)
                             .input('tray_createdAt', sql.DateTime, parsedForm.data.tray_createdAt)
                             .input('tray_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
-                            .query`INSERT INTO "@schema"."@table" 
+                            .query`INSERT INTO "packing"."tray" 
                                     (tray_uid, tray_type_uid, shipdoc_uid, tray_status, tray_createdAt, tray_updatedAt)
                                     VALUES (@tray_uid, @tray_type_uid, @shipdoc_uid, @tray_status, @tray_createdAt, @tray_updatedAt);
                             `;
@@ -279,12 +270,10 @@ export async function updateTray(prevState: State, formData: FormData): StatePro
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('tray_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."tray" 
                                     SET shipdoc_uid = @shipdoc_uid, tray_updatedAt = @tray_updatedAt
                                     WHERE tray_uid = @tray_uid;
                             `;
@@ -327,10 +316,8 @@ export async function deleteTray(tray_uid: string): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
-                            .query`DELETE FROM "@schema"."@table" 
+                            .query`DELETE FROM "packing"."tray" 
                                     WHERE tray_uid = @tray_uid;
                             `;
         }
@@ -361,10 +348,8 @@ export async function readTrayById(tray_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT tray_uid, tray_type_uid, shipdoc_uid, tray_createdAt, tray_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."tray"
                                     WHERE tray_uid = @tray_uid;
                             `;
             parsedForm = readTraySchema.safeParse(result.recordset[0]);

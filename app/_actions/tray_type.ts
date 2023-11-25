@@ -13,12 +13,9 @@ import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
-const schema = 'packing';
-const table = 'tray_type';
 
 export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string) {
     noStore();
-    const queryChecked = query && "";
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -46,11 +43,9 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query);
                             `;
             parsedForm = readTrayTypeSchema.array().safeParse(result.recordset);
@@ -109,14 +104,13 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query)
+                                    ORDER BY tray_part_number asc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -132,6 +126,93 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
     }
 
     revalidatePath('/tray_type');
+    return parsedForm.data
+};
+
+export async function readTrayType() {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.trayType.findMany({
+
+            });
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readTrayTypeSchema.array().safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                                    FROM "packing"."tray_type";
+                            `;
+            parsedForm = readTrayTypeSchema.array().safeParse(result.recordset);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/tray_type');
+    return parsedForm.data
+};
+
+export async function readTrayTypeUid(tray_part_number: string) {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.trayType.findFirst({
+                where: {
+                    tray_part_number: tray_part_number,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readTrayTypeSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('tray_part_number', sql.VarChar, tray_part_number)
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                                    FROM "packing"."tray_type"
+                                    WHERE tray_part_number = @tray_part_number;
+                            `;
+            parsedForm = readTrayTypeSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    // revalidatePath('/tray_type');
     return parsedForm.data
 };
 
@@ -164,14 +245,12 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('tray_part_number', sql.VarChar, parsedForm.data.tray_part_number)
                             .input('tray_max_drive', sql.Int, parsedForm.data.tray_max_drive)
                             .input('tray_type_createdAt', sql.DateTime, parsedForm.data.tray_type_createdAt)
                             .input('tray_type_updatedAt', sql.DateTime, parsedForm.data.tray_type_updatedAt)
-                            .query`INSERT INTO "@schema"."@table" 
+                            .query`INSERT INTO "packing"."tray_type" 
                                     (tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt)
                                     VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_createdAt, @tray_type_updatedAt);
                             `;
@@ -221,12 +300,10 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('tray_max_drive', sql.Int, parsedForm.data.tray_max_drive)
                             .input('tray_type_updatedAt', sql.DateTime, parsedForm.data.tray_type_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."tray_type" 
                                     SET tray_max_drive = @tray_max_drive, tray_type_updatedAt = @tray_type_updatedAt
                                     WHERE tray_type_uid = @tray_type_uid;
                             `;
@@ -269,10 +346,8 @@ export async function deleteTrayType(tray_type_uid: string): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
-                            .query`DELETE FROM "@schema"."@table" 
+                            .query`DELETE FROM "packing"."tray_type" 
                                     WHERE tray_type_uid = @tray_type_uid;
                             `;
         }
@@ -304,10 +379,8 @@ export async function readTrayTypeById(tray_type_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."tray_type"
                                     WHERE tray_type_uid = @tray_type_uid;
                             `;
             parsedForm = readTrayTypeSchema.safeParse(result.recordset[0]);

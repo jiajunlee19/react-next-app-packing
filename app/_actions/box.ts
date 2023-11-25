@@ -15,12 +15,9 @@ import { readBoxTypeUid } from '@/app/_actions/box_type';
 import { readShipdocUid } from '@/app/_actions/shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
-const schema = 'packing';
-const table = 'box';
 
 export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
     noStore();
-    const queryChecked = query && "";
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -81,15 +78,13 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact
-                                    FROM "@schema"."@table" b
-                                    INNER JOIN "@schema"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    INNER JOIN "@schema"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    FROM "packing"."box" b
+                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                     WHERE b.box_status = 'active'
                                     AND (b.box_uid like @query OR b.box_type_uid like @query OR b.shipdoc_uid like @query 
                                         OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
@@ -120,7 +115,6 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -184,21 +178,20 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, `${queryChecked}%`)
+                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact
-                                    FROM "@schema"."@table" b
-                                    INNER JOIN "@schema"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    INNER JOIN "@schema"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    FROM "packing"."box" b
+                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                     WHERE b.box_status = 'active'
                                     AND (b.box_uid like @query OR b.box_type_uid like @query OR b.shipdoc_uid like @query 
                                         OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
                                     )
+                                    ORDER BY b.box_updatedAt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -252,15 +245,13 @@ export async function createBox(prevState: State, formData: FormData): StateProm
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
                             .input('box_createdAt', sql.DateTime, parsedForm.data.box_createdAt)
                             .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
-                            .query`INSERT INTO "@schema"."@table" 
+                            .query`INSERT INTO "packing"."box" 
                                     (box_uid, box_type_uid, shipdoc_uid, box_status, box_createdAt, box_updatedAt)
                                     VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_createdAt, @box_updatedAt);
                             `;
@@ -310,12 +301,10 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
-                            .query`UPDATE "@schema"."@table" 
+                            .query`UPDATE "packing"."box" 
                                     SET shipdoc_uid = @shipdoc_uid, box_updatedAt = @box_updatedAt
                                     WHERE box_uid = @box_uid;
                             `;
@@ -358,10 +347,8 @@ export async function deleteBox(box_uid: string): StatePromise {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
-                            .query`DELETE FROM "@schema"."@table" 
+                            .query`DELETE FROM "packing"."box" 
                                     WHERE box_uid = @box_uid;
                             `;
         }
@@ -392,10 +379,8 @@ export async function readBoxById(box_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('schema', sql.VarChar, schema)
-                            .input('table', sql.VarChar, table)
                             .query`SELECT box_uid, box_type_uid, shipdoc_uid, box_createdAt, box_updatedAt 
-                                    FROM "@schema"."@table"
+                                    FROM "packing"."box"
                                     WHERE box_uid = @box_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);

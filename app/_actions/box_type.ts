@@ -153,7 +153,7 @@ export async function readBoxType() {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "packing"."user";
+                                    FROM "packing"."box_type";
                             `;
             parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
         }
@@ -196,7 +196,7 @@ export async function readBoxTypeUid(box_part_number: string) {
             const result = await pool.request()
                             .input('box_part_number', sql.VarChar, box_part_number)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt 
-                                    FROM "packing"."user"
+                                    FROM "packing"."box_type"
                                     WHERE box_part_number = @box_part_number;
                             `;
             parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
