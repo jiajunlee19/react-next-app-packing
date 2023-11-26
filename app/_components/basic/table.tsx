@@ -7,7 +7,7 @@ import { useState, useMemo, FC } from "react";
 import { TRowData } from "@/app/_libs/types";
 
 type TableProps = {
-    columns: ColumnDef<TRowData>[]
+    columns: ColumnDef<TRowData, any>[]
     data: TRowData[],
 };
 
@@ -75,7 +75,7 @@ export default function Table({ columns, data }: TableProps) {
                             }
                         </>
                     }
-                    <button className="mx-2" ref={dragRef}>🟰</button>
+                    <button className="mx-2 px-1 py-0" ref={dragRef}>🟰</button>
                 </div>
             </th>
         );
@@ -133,7 +133,7 @@ export default function Table({ columns, data }: TableProps) {
                         </tr>
                     ))}
                 </tbody>
-                <tfoot>
+                {/* <tfoot>
                     {table.getFooterGroups().map(footerGroup => (
                         <tr key={footerGroup.id}>
                             {footerGroup.headers.map(header => (
@@ -146,7 +146,7 @@ export default function Table({ columns, data }: TableProps) {
                             ))}
                         </tr>
                     ))}
-                </tfoot>
+                </tfoot> */}
             </table>
             {/* <div className="inline-flex">
                 <div className="flex gap-2">

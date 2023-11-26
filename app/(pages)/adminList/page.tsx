@@ -3,6 +3,7 @@ import { type TReadUserWithoutPassSchema } from "@/app/_libs/zod_auth";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
+import { columns } from "@/app/(pages)/adminList/columns";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
 
@@ -23,15 +24,11 @@ export default async function AdminListPage({ searchParams }: { searchParams?: {
 
     const readAction = readAdminByPage;
 
-    const columnListDisplay: (keyof TReadUserWithoutPassSchema)[] = ['email', 'role'];
-
-    const primaryKey: (keyof TReadUserWithoutPassSchema) = "user_uid";
-
     return (
         <>
             <h1>{pageTitle}</h1>
             <Suspense fallback={<TableSkeleton columnCount={2} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

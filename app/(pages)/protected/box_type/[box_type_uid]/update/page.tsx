@@ -29,8 +29,8 @@ export default async function UpdateBoxType({params}: {params: {box_type_uid: st
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Box Type", href: "/box_type", active: false},
-                {label: `Update ${box_type_uid}`, href: `/box_type/${box_type_uid}/update`, active: true}
+                {label: "Box Type", href: "/protected/box_type", active: false},
+                {label: `Update ${box_type_uid}`, href: `/protected/box_type/${box_type_uid}/update`, active: true}
             ]} />
             <Form 
                 formTitle="Update Box Type"
@@ -43,7 +43,7 @@ export default async function UpdateBoxType({params}: {params: {box_type_uid: st
                 selectOptionData={null}
                 action="update"
                 formAction={updateBoxType}
-                redirectLink="/box_type"
+                redirectLink="/protected/box_type"
             />
         </>
     );

@@ -13,8 +13,8 @@ export default function CreateBoxType() {
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Box Type", href: "/box_type", active: false},
-                {label: "Create", href: "/box_type/create", active: true}
+                {label: "Box Type", href: "/protected/box_type", active: false},
+                {label: "Create", href: "/protected/box_type/create", active: true}
             ]} />
             <Form 
                 formTitle="Create Box Type"
@@ -26,7 +26,7 @@ export default function CreateBoxType() {
                 selectOptionData={null}
                 action="create"
                 formAction={createBoxType}
-                redirectLink="/box_type"
+                redirectLink="/protected/box_type"
             />
         </>
     );

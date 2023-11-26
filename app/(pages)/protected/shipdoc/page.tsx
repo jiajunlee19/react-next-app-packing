@@ -1,8 +1,8 @@
-import { deleteShipdoc, readShipdocTotalPage, readShipdocByPage } from "@/app/_actions/shipdoc";
+import { readShipdocTotalPage, readShipdocByPage } from "@/app/_actions/shipdoc";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { type TReadShipdocSchema } from '@/app/_libs/zod_server';
+import { columns } from "@/app/(pages)/protected/shipdoc/columns";
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
@@ -26,25 +26,16 @@ export default async function Shipdoc({ searchParams }: { searchParams?: { items
 
     const readAction = readShipdocByPage;
 
-    const columnListDisplay: (keyof TReadShipdocSchema)[] = ['shipdoc_uid', 'shipdoc_number', 'shipdoc_contact'];
-
-    const primaryKey: (keyof TReadShipdocSchema) = 'shipdoc_uid';
-
-    // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = "/shipdoc/[placeholder-id]/update";
-
-    const deleteAction = deleteShipdoc;
-
     return (
         <>
             <h1>{pageTitle}</h1>
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/shipdoc/create">
+            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/protected/shipdoc/create">
                 <button className="btn-primary w-min">
                     {createButtonTitle}
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

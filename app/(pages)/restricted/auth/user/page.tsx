@@ -2,6 +2,7 @@ import { readUserTotalPage, readUserByPage, deleteUser } from "@/app/_actions/au
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
+import { columns } from "@/app/(pages)/restricted/auth/user/columns";
 import { type TReadUserWithoutPassSchema } from "@/app/_libs/zod_auth";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
@@ -23,20 +24,11 @@ export default async function User({ searchParams }: { searchParams?: { itemsPer
 
   const readAction = readUserByPage;
 
-  const columnListDisplay: (keyof TReadUserWithoutPassSchema)[] = ['user_uid', 'email', 'role'];
-  
-  const primaryKey: (keyof TReadUserWithoutPassSchema) = 'user_uid';
-
-  // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-  const hrefUpdate = "/restricted/auth/user/[placeholder-id]/updateRole";
-
-  const deleteAction = deleteUser;
-
   return (
     <>
         <h1>{pageTitle}</h1>
         <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-            <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+            <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />
         </Suspense>
         <Pagination totalPage={totalPage} />
     </>

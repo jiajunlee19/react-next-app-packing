@@ -35,7 +35,9 @@ export const createLotSchema = z.object({
 
 export type TReadLotSchema = z.infer<typeof readLotSchema>;
 
-export const readLotSchema = createLotSchema.partial();
+export const readLotSchema = createLotSchema.extend({
+    box_uid: z.string().min(1).uuid(),
+}).partial();
 
 export const updateLotSchema = createLotSchema.pick({
     lot_uid: true,

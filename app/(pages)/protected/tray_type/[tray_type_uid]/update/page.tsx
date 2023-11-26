@@ -29,8 +29,8 @@ export default async function UpdateTrayType({params}: {params: {tray_type_uid: 
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Tray Type", href: "/tray_type", active: false},
-                {label: `Update ${tray_type_uid}`, href: `/tray_type/${tray_type_uid}/update`, active: true}
+                {label: "Tray Type", href: "/protected/tray_type", active: false},
+                {label: `Update ${tray_type_uid}`, href: `/protected/tray_type/${tray_type_uid}/update`, active: true}
             ]} />
             <Form 
                 formTitle="Update Tray Type"
@@ -43,7 +43,7 @@ export default async function UpdateTrayType({params}: {params: {tray_type_uid: 
                 selectOptionData={null}
                 action="update"
                 formAction={updateTrayType}
-                redirectLink="/tray_type"
+                redirectLink="/protected/tray_type"
             />
         </>
     );

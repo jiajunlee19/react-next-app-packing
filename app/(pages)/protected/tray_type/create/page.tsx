@@ -13,8 +13,8 @@ export default function CreateTrayType() {
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Tray Type", href: "/tray_type", active: false},
-                {label: "Create", href: "/tray_type/create", active: true}
+                {label: "Tray Type", href: "/protected/tray_type", active: false},
+                {label: "Create", href: "/protected/tray_type/create", active: true}
             ]} />
             <Form 
                 formTitle="Create Tray Type"
@@ -26,7 +26,7 @@ export default function CreateTrayType() {
                 selectOptionData={null}
                 action="create"
                 formAction={createTrayType}
-                redirectLink="/tray_type"
+                redirectLink="/protected/tray_type"
             />
         </>
     );

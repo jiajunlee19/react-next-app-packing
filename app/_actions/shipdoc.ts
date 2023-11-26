@@ -59,7 +59,7 @@ export async function readShipdocTotalPage(itemsPerPage: number, query?: string)
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    revalidatePath('/shipdoc');
+    revalidatePath('/protected/shipdoc');
     return totalPage
 };
 
@@ -124,7 +124,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
         throw new Error(getErrorMessage(err))
     }
 
-    revalidatePath('/shipdoc');
+    revalidatePath('/protected/shipdoc');
     return parsedForm.data
 };
 
@@ -166,7 +166,7 @@ export async function readShipdoc() {
         throw new Error(getErrorMessage(err))
     }
 
-    // revalidatePath('/shipdoc');
+    // revalidatePath('/protected/shipdoc');
     return parsedForm.data
 };
 
@@ -211,7 +211,7 @@ export async function readShipdocUid(shipdoc_number: string) {
         throw new Error(getErrorMessage(err))
     }
 
-    // revalidatePath('/shipdoc');
+    // revalidatePath('/protected/shipdoc');
     return parsedForm.data
 };
 
@@ -262,7 +262,7 @@ export async function createShipdoc(prevState: State, formData: FormData): State
         }
     }
 
-    revalidatePath('/shipdoc');
+    revalidatePath('/protected/shipdoc');
     return { 
         message: `Successfully created shipdoc ${parsedForm.data.shipdoc_uid}` 
     }
@@ -315,7 +315,7 @@ export async function updateShipdoc(prevState: State, formData: FormData): State
         }
     }
 
-    revalidatePath('/shipdoc');
+    revalidatePath('/protected/shipdoc');
     return { message: `Successfully updated shipdoc ${parsedForm.data.shipdoc_uid}` }
 };
 
@@ -358,7 +358,7 @@ export async function deleteShipdoc(shipdoc_uid: string): StatePromise {
         }
     }
 
-    revalidatePath('/shipdoc');
+    revalidatePath('/protected/shipdoc');
     return { message: `Successfully deleted shipdoc ${parsedForm.data.shipdoc_uid}` }
 };
 

@@ -1,5 +1,7 @@
 export type TFormMode = "create" | "update" | null;
 
+export type TRole = "user" | "admin" | "boss";
+
 export type TRowData = {
     [key: string]: string | number | Date,
 };

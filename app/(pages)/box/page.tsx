@@ -2,6 +2,7 @@ import { deleteBox, readBoxTotalPage, readBoxByPage } from "@/app/_actions/box";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
+import { columns } from "@/app/(pages)/box/columns";
 import { type TReadBoxSchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
 import { Suspense } from "react";
@@ -44,7 +45,7 @@ export default async function Box({ searchParams }: { searchParams?: { itemsPerP
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

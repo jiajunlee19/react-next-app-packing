@@ -13,8 +13,8 @@ export default function CreateShipdoc() {
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Shipdoc", href: "/shipdoc", active: false},
-                {label: "Create", href: "/shipdoc/create", active: true}
+                {label: "Shipdoc", href: "/protected/shipdoc", active: false},
+                {label: "Create", href: "/protected/shipdoc/create", active: true}
             ]} />
             <Form 
                 formTitle="Create Shipdoc"
@@ -26,7 +26,7 @@ export default function CreateShipdoc() {
                 selectOptionData={null}
                 action="create"
                 formAction={createShipdoc}
-                redirectLink="/shipdoc"
+                redirectLink="/protected/shipdoc"
             />
         </>
     );

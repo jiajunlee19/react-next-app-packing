@@ -1,9 +1,9 @@
-import { deleteTray, readTrayTotalPage, readTrayByPage } from "@/app/_actions/tray";
+import { readTrayTotalPage, readTrayByPage } from "@/app/_actions/tray";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
+import { columns } from "@/app/(pages)/box/[box_uid]/tray/columns";
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
-import { type TReadTraySchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
@@ -35,15 +35,6 @@ export default async function Tray({ params, searchParams }: TrayProps) {
 
     const readAction = readTrayByPage;
 
-    const columnListDisplay: (keyof TReadTraySchema)[] = ['tray_uid', 'tray_part_number', 'tray_max_drive', 'tray_createdAt', 'tray_updatedAt'];
-
-    const primaryKey: (keyof TReadTraySchema) = 'tray_uid';
-
-    // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = `/box/${box_uid}/tray/[placeholder-id]/lot`;
-
-    const deleteAction = deleteTray;
-
     return (
         <>
             <div className="-mx-[2%]">
@@ -59,7 +50,7 @@ export default async function Tray({ params, searchParams }: TrayProps) {
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={box_uid} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={box_uid} readAction={readAction} columns={columns} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

@@ -2,6 +2,7 @@ import { deleteLot, readLotTotalPage, readLotByPage } from "@/app/_actions/lot";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
+import { columns } from "@/app/(pages)/box/[box_uid]/tray/[tray_uid]/lot/columns";
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
 import { type TReadLotSchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
@@ -39,15 +40,6 @@ export default async function Lot({ params, searchParams }: LotProps) {
 
     const readAction = readLotByPage;
 
-    const columnListDisplay: (keyof TReadLotSchema)[] = ['lot_uid', 'tray_uid', 'lot_id', 'lot_qty', 'lot_createdAt', 'lot_updatedAt'];
-
-    const primaryKey: (keyof TReadLotSchema) = 'lot_uid';
-
-    // "[placeholder-id]" will be replaced by "id" for each row in 
-    const hrefUpdate = `/box/${box_uid}/tray/${tray_uid}/lot/[placeholder-id]/update`;
-
-    const deleteAction = deleteLot;
-
     return (
         <>
             <div className="-mx-[2%]">
@@ -64,7 +56,7 @@ export default async function Lot({ params, searchParams }: LotProps) {
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
-                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={tray_uid} readAction={readAction} columnListDisplay={columnListDisplay} primaryKey={primaryKey} hrefUpdate={hrefUpdate} deleteAction={deleteAction} />
+                <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={tray_uid} readAction={readAction} columns={columns} />
             </Suspense>
             <Pagination totalPage={totalPage} />
         </>

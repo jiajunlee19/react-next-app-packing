@@ -59,7 +59,7 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    revalidatePath('/tray_type');
+    revalidatePath('/protected/tray_type');
     return totalPage
 };
 
@@ -125,7 +125,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
         throw new Error(getErrorMessage(err))
     }
 
-    revalidatePath('/tray_type');
+    revalidatePath('/protected/tray_type');
     return parsedForm.data
 };
 
@@ -167,7 +167,7 @@ export async function readTrayType() {
         throw new Error(getErrorMessage(err))
     }
 
-    // revalidatePath('/tray_type');
+    // revalidatePath('/protected/tray_type');
     return parsedForm.data
 };
 
@@ -212,7 +212,7 @@ export async function readTrayTypeUid(tray_part_number: string) {
         throw new Error(getErrorMessage(err))
     }
 
-    // revalidatePath('/tray_type');
+    // revalidatePath('/protected/tray_type');
     return parsedForm.data
 };
 
@@ -263,7 +263,7 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
         }
     }
 
-    revalidatePath('/tray_type');
+    revalidatePath('/protected/tray_type');
     return { 
         message: `Successfully created tray_type ${parsedForm.data.tray_type_uid}` 
     }
@@ -316,7 +316,7 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
         }
     }
 
-    revalidatePath('/tray_type');
+    revalidatePath('/protected/tray_type');
     return { message: `Successfully updated tray_type ${parsedForm.data.tray_type_uid}` }
 };
 
@@ -359,7 +359,7 @@ export async function deleteTrayType(tray_type_uid: string): StatePromise {
         }
     }
 
-    revalidatePath('/tray_type');
+    revalidatePath('/protected/tray_type');
     return { message: `Successfully deleted tray_type ${parsedForm.data.tray_type_uid}` }
 };
 

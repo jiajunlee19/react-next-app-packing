@@ -29,8 +29,8 @@ export default async function UpdateShipdoc({params}: {params: {shipdoc_uid: str
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Shipdoc", href: "/shipdoc", active: false},
-                {label: `Update ${shipdoc_uid}`, href: `/shipdoc/${shipdoc_uid}/update`, active: true}
+                {label: "Shipdoc", href: "/protected/shipdoc", active: false},
+                {label: `Update ${shipdoc_uid}`, href: `/protected/shipdoc/${shipdoc_uid}/update`, active: true}
             ]} />
             <Form 
                 formTitle="Update Shipdoc"
@@ -43,7 +43,7 @@ export default async function UpdateShipdoc({params}: {params: {shipdoc_uid: str
                 selectOptionData={null}
                 action="update"
                 formAction={updateShipdoc}
-                redirectLink="/shipdoc"
+                redirectLink="/protected/shipdoc"
             />
         </>
     );
