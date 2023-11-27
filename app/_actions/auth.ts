@@ -360,7 +360,7 @@ export async function signIn(email: TEmailSchema, password: TPasswordSchema) {
                                     FROM "packing"."user"
                                     WHERE email = @email;
                             `;
-            parsedResult = readUserSchema.safeParse(result.recordset);
+            parsedResult = readUserSchema.safeParse(result.recordset[0]);
         }
     
         if (!parsedResult.success) {
@@ -556,6 +556,7 @@ export async function readUserById(user_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
+                            .input('user_uid', sql.VarChar, user_uid)
                             .query`SELECT user_uid, email, role, user_createdAt, user_updatedAt 
                                     FROM "packing"."user"
                                     WHERE user_uid = @user_uid;
