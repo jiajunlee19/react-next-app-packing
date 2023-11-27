@@ -13,8 +13,8 @@ type TableProps = {
 
 export default function Table({ columns, data }: TableProps) {
 
-    const memoColumns = useMemo(() => columns, []);
-    const memoData = useMemo(() => data, []);
+    const memoColumns = useMemo(() => columns, [columns]);
+    const memoData = useMemo(() => data, [data]);
 
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(memoColumns.map(column => column.id as string));
