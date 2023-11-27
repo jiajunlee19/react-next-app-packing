@@ -35,22 +35,6 @@ export const columns = [
             type: "text",
         },
     }),
-    columnHelper.accessor("user_createdAt", {
-        id: "user_createdAt",
-        header: "user_createdAt",
-        footer: "user_createdAt",
-        meta: {
-            type: "date",
-        },
-    }),
-    columnHelper.accessor("user_updatedAt", {
-        id: "user_updatedAt",
-        header: "user_updatedAt",
-        footer: "user_updatedAt",
-        meta: {
-            type: "date",
-        },
-    }),
     columnHelper.display({
         id: "action",
         header: "action",
