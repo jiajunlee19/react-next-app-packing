@@ -30,15 +30,13 @@ async function seedUser() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                  pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'user')
                 .input('user_uid', sql.VarChar, d.user_uid)
                 .input('email', sql.VarChar, d.email)
                 .input('password', sql.VarChar, await bcrypt.hash(d.password, 10))
                 .input('role', sql.VarChar, d.role)
                 .input('user_createdAt', sql.DateTime, d.user_createdAt)
                 .input('user_updatedAt', sql.DateTime, d.user_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."user" 
                         (user_uid, email, password, role, user_createdAt, user_updatedAt)
                         VALUES (@user_uid, @email, @password, @role, @user_createdAt, @user_updatedAt);
                 `;
@@ -78,7 +76,7 @@ async function seedBoxType() {
                 .input('box_max_tray', sql.Int, d.box_max_tray)
                 .input('box_type_createdAt', sql.DateTime, d.box_type_createdAt)
                 .input('box_type_updatedAt', sql.DateTime, d.box_type_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."box_type" 
                         (box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt)
                         VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_createdAt, @box_type_updatedAt);
                 `;
@@ -111,14 +109,12 @@ async function seedTrayType() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                 pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'tray_type')
                 .input('tray_type_uid', sql.VarChar, d.tray_type_uid)
                 .input('tray_part_number', sql.VarChar, d.tray_part_number)
                 .input('tray_max_drive', sql.Int, d.tray_max_drive)
                 .input('tray_type_createdAt', sql.DateTime, d.tray_type_createdAt)
                 .input('tray_type_updatedAt', sql.DateTime, d.tray_type_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."@tray_type" 
                         (tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt)
                         VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_createdAt, @tray_type_updatedAt);
                 `;
@@ -151,14 +147,12 @@ async function seedShipdoc() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                 pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'shipdoc')
                 .input('shipdoc_uid', sql.VarChar, d.shipdoc_uid)
                 .input('shipdoc_number', sql.Int, d.shipdoc_number)
                 .input('shipdoc_contact', sql.VarChar, d.shipdoc_contact)
                 .input('shipdoc_createdAt', sql.DateTime, d.shipdoc_createdAt)
                 .input('shipdoc_updatedAt', sql.DateTime, d.shipdoc_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."shipdoc" 
                         (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt)
                         VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_createdAt, @shipdoc_updatedAt);
                 `;
@@ -191,15 +185,13 @@ async function seedBox() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                 pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'box')
                 .input('box_uid', sql.VarChar, d.box_uid)
                 .input('box_type_uid', sql.VarChar, d.box_type_uid)
                 .input('shipdoc_uid', sql.VarChar, d.shipdoc_uid)
                 .input('box_status', sql.VarChar, d.box_status)
                 .input('box_createdAt', sql.DateTime, d.box_createdAt)
                 .input('box_updatedAt', sql.DateTime, d.box_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."box" 
                         (box_uid, box_type_uid, shipdoc_uid, box_status, box_createdAt, box_updatedAt)
                         VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_createdAt, @box_updatedAt);
                 `;
@@ -232,14 +224,12 @@ async function seedTray() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                 pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'tray')
                 .input('tray_uid', sql.VarChar, d.tray_uid)
                 .input('box_uid', sql.Int, d.box_uid)
                 .input('tray_type_uid', sql.VarChar, d.tray_type_uid)
                 .input('tray_createdAt', sql.DateTime, d.tray_createdAt)
                 .input('tray_updatedAt', sql.DateTime, d.tray_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."@tray" 
                         (tray_uid, box_uid, tray_type_uid, tray_createdAt, tray_updatedAt)
                         VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_createdAt, @tray_updatedAt);
                 `;
@@ -272,15 +262,13 @@ async function seedLot() {
             let pool = await sql.connect(sqlConfig);
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                 pool.request()
-                .input('schema', sql.VarChar, 'packing')
-                .input('table', sql.VarChar, 'lot')
                 .input('lot_uid', sql.VarChar, d.lot_uid)
                 .input('tray_uid', sql.VarChar, d.tray_uid)
                 .input('lot_id', sql.VarChar, d.lot_id)
                 .input('lot_qty', sql.Int, d.lot_qty)
                 .input('lot_createdAt', sql.DateTime, d.lot_createdAt)
                 .input('lot_updatedAt', sql.DateTime, d.lot_updatedAt)
-                .query`INSERT INTO "@schema"."@table" 
+                .query`INSERT INTO "packing"."lot" 
                         (lot_uid, tray_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt)
                         VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_createdAt, @lot_updatedAt);
                 `;
