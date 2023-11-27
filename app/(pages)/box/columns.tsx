@@ -69,6 +69,7 @@ export const columns = [
         meta: {
             type: "date",
         },
+        cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
     columnHelper.display({
         id: "action",

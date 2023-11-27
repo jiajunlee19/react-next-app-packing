@@ -45,6 +45,7 @@ export const columns = [
         meta: {
             type: "date",
         },
+        cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
     columnHelper.accessor("tray_updatedAt", {
         id: "tray_updatedAt",
@@ -53,6 +54,7 @@ export const columns = [
         meta: {
             type: "date",
         },
+        cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
     columnHelper.display({
         id: "action",

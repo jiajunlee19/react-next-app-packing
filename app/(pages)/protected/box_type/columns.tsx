@@ -5,6 +5,7 @@ import DeleteButton from "@/app/_components/basic/button_delete";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadBoxTypeSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
+import { DateTime } from "luxon";
 
 // "[placeholder-id]" will be replaced by "id" for each row in DataTable
 const hrefUpdate = "/protected/box_type/[box_type_uid]/update";
@@ -45,6 +46,7 @@ export const columns = [
         meta: {
             type: "date",
         },
+        cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
     columnHelper.accessor("box_type_updatedAt", {
         id: "box_type_updatedAt",
@@ -53,6 +55,7 @@ export const columns = [
         meta: {
             type: "date",
         },
+        cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
     columnHelper.display({
         id: "action",
