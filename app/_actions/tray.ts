@@ -66,9 +66,12 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
                                     tt.tray_part_number, tt.tray_max_drive,
+                                    SUM(l.lot_qty) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "packing"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
+                                    INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
+                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                                    tt.tray_part_number, tt.tray_max_drive
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
@@ -153,9 +156,12 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
                             .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
                                     tt.tray_part_number, tt.tray_max_drive,
+                                    SUM(l.lot_qty) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "packing"."shipdoc" s ON t.shipdoc_uid = s.shipdoc_uid
+                                    INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
+                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                                    tt.tray_part_number, tt.tray_max_drive
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
