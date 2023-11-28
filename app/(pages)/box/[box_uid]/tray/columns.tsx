@@ -22,18 +22,18 @@ export const columns = [
             type: "text",
         },
     }),
-    columnHelper.accessor("tray_number", {
-        id: "tray_number",
-        header: "tray_number",
-        footer: "tray_number",
+    columnHelper.accessor("tray_part_number", {
+        id: "tray_part_number",
+        header: "tray_part_number",
+        footer: "tray_part_number",
         meta: {
             type: "text",
         },
     }),
-    columnHelper.accessor("tray_contact", {
-        id: "tray_contact",
-        header: "tray_contact",
-        footer: "tray_contact",
+    columnHelper.accessor("tray_max_drive", {
+        id: "tray_max_drive",
+        header: "tray_max_drive",
+        footer: "tray_max_drive",
         meta: {
             type: "text",
         },
