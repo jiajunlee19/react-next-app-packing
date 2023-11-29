@@ -20,6 +20,17 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.lot.findMany({
+                include: {
+                    fk_tray_uid: {
+                        select: {
+                            fk_box_uid: {
+                                select: {
+                                    box_uid: true,
+                                },
+                            },
+                        },
+                    },
+                },
                 where: {
                     tray_uid: tray_uid,
                     ...(query &&
@@ -46,8 +57,9 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, tray_uid)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT lot_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt
-                                    FROM "packing"."lot"
+                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_createdAt, l.lot_updatedAt
+                                    FROM "packing"."lot" l
+                                    INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
                                     AND (lot_uid like @query OR lot_id like @query);
                             `;
@@ -81,6 +93,17 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.lot.findMany({
+                include: {
+                    fk_tray_uid: {
+                        select: {
+                            fk_box_uid: {
+                                select: {
+                                    box_uid: true,
+                                },
+                            },
+                        },
+                    },
+                },
                 where: {
                     tray_uid: tray_uid,
                     ...(query &&
@@ -111,8 +134,9 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT lot_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt
-                                    FROM "packing"."lot"
+                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_createdAt, l.lot_updatedAt
+                                    FROM "packing"."lot" l
+                                    INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
                                     AND (lot_uid like @query OR lot_id like @query)
                                     ORDER BY lot_updatedAt desc

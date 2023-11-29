@@ -56,6 +56,12 @@ export default async function Lot({ params, searchParams }: LotProps) {
                     {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: true},
                 ]} />
             </div>
+            
+            <div className="flex gap-3 mb-[2%]">
+                <p>tray_max_drive = {tray_max_drive}</p>
+                <p>|</p>
+                <p>tray_current_drive = {tray_current_drive}</p>
+            </div>
 
             <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
                 <button disabled={isTrayMax} className="btn-primary w-min">
