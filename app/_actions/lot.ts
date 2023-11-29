@@ -11,6 +11,7 @@ import prisma from '@/prisma/prisma';
 import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
+import { readTrayById } from '@/app/_actions/tray';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
@@ -179,6 +180,15 @@ export async function createLot(prevState: State, formData: FormData): StateProm
     };
 
     try {
+
+        // Return error if exceed tray max drive
+        const {tray_current_drive, tray_max_drive} = await readTrayById(parsedForm.data.tray_uid);
+        if (tray_current_drive && tray_max_drive && (tray_current_drive + parsedForm.data.lot_qty) > tray_max_drive) {
+            return { 
+                error: {error: ["Exceeded max drive qty in the tray, failed to create new lot !"]},
+                message: "Exceeded max drive qty in the tray, failed to create new lot !"
+            }
+        }
 
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.lot.create({
