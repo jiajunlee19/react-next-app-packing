@@ -35,7 +35,15 @@ export const columns = [
         header: "tray_max_drive",
         footer: "tray_max_drive",
         meta: {
-            type: "text",
+            type: "number",
+        },
+    }),
+    columnHelper.accessor("tray_current_drive", {
+        id: "tray_current_drive",
+        header: "tray_current_drive",
+        footer: "tray_current_drive",
+        meta: {
+            type: "number",
         },
     }),
     columnHelper.accessor("tray_createdAt", {

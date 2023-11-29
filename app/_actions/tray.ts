@@ -106,6 +106,17 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const grouped = await prisma.lot.groupBy({
+                by: ['tray_uid'],
+                _sum: {
+                    lot_qty: true,
+                },
+                where: {
+                    fk_tray_uid: {
+                        box_uid: box_uid,
+                    },
+                },
+            });
             const result = await prisma.tray.findMany({
                 include: {
                     fk_tray_type_uid: {
@@ -145,7 +156,25 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
             const flattenResult = result.map((row) => {
                 return flattenNestedObject(row)
             });
-            parsedForm = readTraySchema.array().safeParse(flattenResult);
+            const summary = [];
+            for (let i = 0; i < grouped.length; i++ ) {
+                for (let j = 0; j < flattenResult.length; j++) {
+                    let element = {};
+                    if (grouped[i].tray_uid === flattenResult[j]?.tray_uid) {
+                        element = {
+                            ...flattenResult[i],
+                            tray_current_drive: grouped[j]._sum.lot_qty
+                        };
+                    } else {
+                        element = {
+                            ...flattenResult[i],
+                            tray_current_drive: 0,
+                        };
+                    }
+                    summary.push(element)
+                };
+            };
+            parsedForm = readTraySchema.array().safeParse(summary);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -154,14 +183,17 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                            .query`WITH l AS (
+                                        SELECT tray_uid, SUM(lot_qty) tray_current_drive
+                                        FROM "packing"."lot" 
+                                        GROUP BY tray_uid
+                                    )
+                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    SUM(l.lot_qty) tray_current_drive
+                                    IFNULL(l.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
-                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
-                                    tt.tray_part_number, tt.tray_max_drive
+                                    OUTER JOIN l ON t.tray_uid = l.tray_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
