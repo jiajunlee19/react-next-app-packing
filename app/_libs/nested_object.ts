@@ -1,7 +1,7 @@
 import { TRowData } from "@/app/_libs/types";
 
 type NestedObject = {
-    [key: string]: TRowData | string | number | Date,
+    [key: string]: NestedObject | TRowData | string | number | Date,
 };
 
 // convert nested object
