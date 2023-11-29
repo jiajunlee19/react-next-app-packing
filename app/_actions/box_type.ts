@@ -370,7 +370,7 @@ export async function readBoxTypeById(box_type_uid: string) {
             const result = await prisma.boxType.findUnique({
                 where: {
                     box_type_uid: box_type_uid,
-                }
+                },
             });
             const flattenResult = flattenNestedObject(result);
             parsedForm = readBoxTypeSchema.safeParse(flattenResult);

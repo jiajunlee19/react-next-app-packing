@@ -291,9 +291,10 @@ export async function readLotById(lot_uid: string) {
             const result = await prisma.lot.findUnique({
                 where: {
                     lot_uid: lot_uid,
-                }
+                },
             });
-            parsedForm = readLotSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readLotSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);

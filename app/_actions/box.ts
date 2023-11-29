@@ -372,9 +372,10 @@ export async function readBoxById(box_uid: string) {
             const result = await prisma.box.findUnique({
                 where: {
                     box_uid: box_uid,
-                }
+                },
             });
-            parsedForm = readBoxSchema.safeParse(result);
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);

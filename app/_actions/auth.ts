@@ -548,10 +548,10 @@ export async function readUserById(user_uid: string) {
             const result = await prisma.user.findUnique({
                 where: {
                     user_uid: user_uid,
-                }
+                },
             });
             const flattenResult = flattenNestedObject(result);
-            parsedForm = readUserWithoutPassSchema.safeParse(result);
+            parsedForm = readUserWithoutPassSchema.safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
