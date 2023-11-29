@@ -65,7 +65,7 @@ export default async function Lot({ params, searchParams }: LotProps) {
 
             <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
                 <button disabled={isTrayMax} className="btn-primary w-min">
-                    {createButtonTitle}
+                    {isTrayMax ? "Tray is Full" : createButtonTitle}
                 </button>
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
