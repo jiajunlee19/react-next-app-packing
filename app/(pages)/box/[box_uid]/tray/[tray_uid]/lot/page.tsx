@@ -1,13 +1,13 @@
-import { deleteLot, readLotTotalPage, readLotByPage } from "@/app/_actions/lot";
+import { readLotTotalPage, readLotByPage } from "@/app/_actions/lot";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
 import { columns } from "@/app/(pages)/box/[box_uid]/tray/[tray_uid]/lot/columns";
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
-import { type TReadLotSchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
+import { readTrayById } from "@/app/_actions/tray";
 
 export const metadata: Metadata = {
     title: 'Lot',
@@ -40,6 +40,13 @@ export default async function Lot({ params, searchParams }: LotProps) {
 
     const readAction = readLotByPage;
 
+    const {tray_current_drive, tray_max_drive} = await readTrayById(tray_uid);
+
+    let isTrayMax = false;
+    if (tray_current_drive && tray_max_drive && tray_current_drive >= tray_max_drive) {
+        isTrayMax = true;
+    }
+
     return (
         <>
             <div className="-mx-[2%]">
@@ -51,7 +58,7 @@ export default async function Lot({ params, searchParams }: LotProps) {
             </div>
 
             <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
-                <button className="btn-primary w-min">
+                <button disabled={isTrayMax} className="btn-primary w-min">
                     {createButtonTitle}
                 </button>
             </Link>
