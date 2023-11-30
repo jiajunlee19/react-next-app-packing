@@ -400,21 +400,63 @@ export async function readBoxById(box_uid: string) {
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const grouped = await prisma.tray.groupBy({
+                by: ['box_uid'],
+                _count: {
+                    tray_uid: true,
+                },
+                where: {
+                    fk_box_uid: {
+                        box_uid: box_uid,
+                    },
+                },
+            });
             const result = await prisma.box.findUnique({
+                include: {
+                    fk_box_type_uid: {
+                        select: {
+                            box_part_number: true,
+                            box_max_tray: true,
+                        },
+                    },
+                },
                 where: {
                     box_uid: box_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
-            parsedForm = readBoxSchema.safeParse(flattenResult);
+            let summary = {};
+            if (grouped[0].box_uid === flattenResult?.box_uid) {
+                summary = {
+                    ...flattenResult,
+                    'box_current_tray': grouped[0]._count.tray_uid,
+                };
+            }
+            else {
+                summary = {
+                    ...flattenResult,
+                    'box_current_tray': 0,
+                };
+            }
+            parsedForm = readBoxSchema.safeParse(summary);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
-                            .query`SELECT box_uid, box_type_uid, shipdoc_uid, box_createdAt, box_updatedAt 
-                                    FROM "packing"."box"
-                                    WHERE box_uid = @box_uid;
+                            .query`WITH t as (
+                                        SELECT box_uid, COUNT(tray_uid) box_current_tray
+                                        FROM "packing"."tray"
+                                        GROUP BY box_uid
+                                        WHERE box_uid = @box_uid
+                                    )
+                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_createdAt, b.box_updatedAt,
+                                    bt.box_part_number, bt.box_max_tray,
+                                    IFNULL(t.box_current_tray, 0)::INT box_current_tray
+                                    FROM "packing"."box" b
+                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    OUTER JOIN t ON b.box_uid = t.box_uid
+                                    WHERE b.box_uid = @box_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
         }

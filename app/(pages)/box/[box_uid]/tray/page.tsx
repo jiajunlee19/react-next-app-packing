@@ -1,4 +1,5 @@
 import { readTrayTotalPage, readTrayByPage } from "@/app/_actions/tray";
+import { readBoxById } from "@/app/_actions/box";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
@@ -35,6 +36,13 @@ export default async function Tray({ params, searchParams }: TrayProps) {
 
     const readAction = readTrayByPage;
 
+    const {box_current_tray, box_max_tray} = await readBoxById(box_uid);
+
+    let isBoxMax = false;
+    if (box_current_tray && box_max_tray && box_current_tray >= box_max_tray) {
+        isBoxMax = true;
+    }
+
     return (
         <>
             <div className="-mx-[2%]">
@@ -44,8 +52,14 @@ export default async function Tray({ params, searchParams }: TrayProps) {
                 ]} />
             </div>
 
+            <div className="flex gap-3 mb-[2%]">
+                <p>box_max_tray = {box_max_tray}</p>
+                <p>|</p>
+                <p>box_current_tray = {box_current_tray}</p>
+            </div>
+
             <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/create`}>
-                <button className="btn-primary w-min">
+                <button disabled={isBoxMax} className="btn-primary w-min">
                     {createButtonTitle}
                 </button>
             </Link>

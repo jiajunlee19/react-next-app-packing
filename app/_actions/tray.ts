@@ -12,6 +12,7 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayTypeUid } from '@/app/_actions/tray_type';
+import { readBoxById } from '@/app/_actions/box';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
@@ -235,6 +236,15 @@ export async function createTray(prevState: State, formData: FormData): StatePro
     };
 
     try {
+
+        // Return error if exceed box max tray
+        const {box_current_tray, box_max_tray} = await readBoxById(parsedForm.data.box_uid);
+        if (box_current_tray && box_max_tray && (box_current_tray + 1) > box_max_tray) {
+            return { 
+                error: {error: ["Exceeded max tray count in the box, failed to create new tray !"]},
+                message: "Exceeded max tray count in the box, failed to create new tray !"
+            }
+        }
 
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.tray.create({
