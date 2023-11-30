@@ -185,12 +185,12 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                     let element = {};
                     if (grouped[i].box_uid === flattenResult[j]?.box_uid) {
                         element = {
-                            ...flattenResult[i],
+                            ...flattenResult[j],
                             box_current_tray: grouped[i]._count.tray_uid
                         };
                     } else {
                         element = {
-                            ...flattenResult[i],
+                            ...flattenResult[j],
                             box_current_tray: 0,
                         };
                     }

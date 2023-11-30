@@ -158,12 +158,12 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                     let element = {};
                     if (grouped[i].tray_uid === flattenResult[j]?.tray_uid) {
                         element = {
-                            ...flattenResult[i],
+                            ...flattenResult[j],
                             tray_current_drive: grouped[i]._sum.lot_qty
                         };
                     } else {
                         element = {
-                            ...flattenResult[i],
+                            ...flattenResult[j],
                             tray_current_drive: 0,
                         };
                     }
