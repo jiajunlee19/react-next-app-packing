@@ -186,7 +186,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                     if (grouped[i].box_uid === flattenResult[j]?.box_uid) {
                         element = {
                             ...flattenResult[i],
-                            box_current_tray: grouped[j]._count.tray_uid
+                            box_current_tray: grouped[i]._count.tray_uid
                         };
                     } else {
                         element = {
