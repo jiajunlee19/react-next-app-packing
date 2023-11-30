@@ -111,11 +111,6 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                 _sum: {
                     lot_qty: true,
                 },
-                where: {
-                    fk_tray_uid: {
-                        box_uid: box_uid,
-                    },
-                },
             });
             const result = await prisma.tray.findMany({
                 include: {
