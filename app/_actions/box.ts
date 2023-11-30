@@ -426,7 +426,7 @@ export async function readBoxById(box_uid: string) {
             });
             const flattenResult = flattenNestedObject(result);
             let summary = {};
-            if (grouped[0].box_uid === flattenResult?.box_uid) {
+            if (grouped[0]?.box_uid === flattenResult?.box_uid) {
                 summary = {
                     ...flattenResult,
                     'box_current_tray': grouped[0]._count.tray_uid,

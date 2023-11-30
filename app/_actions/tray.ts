@@ -401,7 +401,7 @@ export async function readTrayById(tray_uid: string) {
             });
             const flattenResult = flattenNestedObject(result);
             let summary = {};
-            if (grouped[0].tray_uid === flattenResult?.tray_uid) {
+            if (grouped[0]?.tray_uid === flattenResult?.tray_uid) {
                 summary = {
                     ...flattenResult,
                     'tray_current_drive': grouped[0]._sum.lot_qty,
