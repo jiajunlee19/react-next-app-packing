@@ -46,6 +46,14 @@ export const columns = [
             type: "number",
         },
     }),
+    columnHelper.accessor("box_current_tray", {
+        id: "box_current_tray",
+        header: "box_current_tray",
+        footer: "box_current_tray",
+        meta: {
+            type: "number",
+        },
+    }),
     columnHelper.accessor("shipdoc_number", {
         id: "shipdoc_number",
         header: "shipdoc_number",

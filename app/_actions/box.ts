@@ -119,6 +119,12 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const grouped = await prisma.tray.groupBy({
+                by: ['box_uid'],
+                _count: {
+                    tray_uid: true,
+                },
+            });
             const result = await prisma.box.findMany({
                 include: {
                     fk_box_type_uid: {
@@ -173,7 +179,25 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
             const flattenResult = result.map((row) => {
                 return flattenNestedObject(row)
             });
-            parsedForm = readBoxSchema.array().safeParse(flattenResult);
+            const summary = [];
+            for (let i = 0; i < grouped.length; i++ ) {
+                for (let j = 0; j < flattenResult.length; j++) {
+                    let element = {};
+                    if (grouped[i].box_uid === flattenResult[j]?.box_uid) {
+                        element = {
+                            ...flattenResult[i],
+                            box_current_tray: grouped[j]._count.tray_uid
+                        };
+                    } else {
+                        element = {
+                            ...flattenResult[i],
+                            box_current_tray: 0,
+                        };
+                    }
+                    summary.push(element)
+                };
+            };
+            parsedForm = readBoxSchema.array().safeParse(summary);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -181,12 +205,19 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
+                            .query`WITH t AS (
+                                        SELECT box_uid, COUNT(tray_uid) box_current_tray
+                                        FROM "packing"."tray"
+                                        GROUP BY box_uid
+                                    )
+                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
                                     bt.box_part_number, bt.box_max_tray,
-                                    s.shipdoc_number, s.shipdoc_contact
+                                    s.shipdoc_number, s.shipdoc_contact,
+                                    IFNULL(t.box_current_tray, 0)::INT box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    OUTER JOIN t ON b.box_uid = t.box_uid
                                     WHERE b.box_status = 'active'
                                     AND (b.box_uid like @query OR b.box_type_uid like @query OR b.shipdoc_uid like @query 
                                         OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
