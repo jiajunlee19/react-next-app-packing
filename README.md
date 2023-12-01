@@ -72,4 +72,24 @@ Project workflow is visualized in the flowchart below.
     - [Update existing tray type](/app/\(pages\)/protected/shipdoc/[shipdoc_uid]/update/page.tsx)
     ![Feature_UpdateExistingShipdoc.PNG](/Misc/Feature_UpdateExistingShipdoc.PNG)
 
+8. Manage Box
+    - [View all box](/app/\(pages\)/box/page.tsx)
+    ![Feature_ViewAllBox.PNG](/Misc/Feature_ViewAllBox.PNG)
+    - [Create new box](/app/\(pages\)/box/create/page.tsx)
+    ![Feature_CreateNewBox.PNG](/Misc/Feature_CreateNewBox.PNG)
+
+9. Manage Tray in a Box
+    - [View all tray](/app/\(pages\)/box/[box_uid]/tray/page.tsx)
+    ![Feature_ViewAllTray.PNG](/Misc/Feature_ViewAllTray.PNG)
+    - [Create new tray](/app/\(pages\)/box/[box_uid]/tray/create/page.tsx)
+    ![Feature_CreateNewTray.PNG](/Misc/Feature_CreateNewTray.PNG)
+
+10. Manage Lot in a Tray
+    - [View all Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/page.tsx)
+    ![Feature_ViewAllLot.PNG](/Misc/Feature_ViewAllLots.PNG)
+    - [Create new Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/create/page.tsx)
+    ![Feature_CreateNewLot.PNG](/Misc/Feature_CreateNewLot.PNG)
+    - [Update existing Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/[lot_uid]/update/page.tsx)
+    ![Feature_UpdateExistingLot.PNG](/Misc/Feature_UpdateExistingLot.PNG)
+
 <br>
