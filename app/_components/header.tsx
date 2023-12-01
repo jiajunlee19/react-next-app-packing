@@ -193,7 +193,7 @@ export default function Header() {
                                 </ul>
                             </div>
 
-                            {session?.user.role === 'admin' || session?.user.role === 'boss' &&
+                            {(session?.user.role === 'admin' || session?.user.role === 'boss') &&
                             <>
                                 <h2>Protected Actions</h2>
                                 <div className="relative my-3 pl-2">
