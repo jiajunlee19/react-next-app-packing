@@ -37,7 +37,7 @@ export default async function UpdateShipdoc({params}: {params: {shipdoc_uid: str
                 inputType={{
                     'shipdoc_uid': 'hidden',
                     'shipdoc_number': 'readonly',
-                    'shipdoc_contact': 'number',
+                    'shipdoc_contact': 'text',
                 }}
                 rowData={shipdoc}
                 selectOptionData={null}

@@ -20,7 +20,7 @@ export default function CreateShipdoc() {
                 formTitle="Create Shipdoc"
                 inputType={{
                     'shipdoc_number': 'text',
-                    'shipdoc_contact': 'number',
+                    'shipdoc_contact': 'text',
                 }}
                 rowData={null}
                 selectOptionData={null}
