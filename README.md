@@ -36,7 +36,19 @@ Project workflow is visualized in the flowchart below.
 <br>
 
 # Key features
-1. Admin - Manage Box Type
+1. [Sign Up](/app/\(pages\)/auth/signUp/page.tsx)
+    ![Feature_SignUp.PNG](/Misc/Feature_SignUp.PNG)
+
+2. [Sign In](/app/\(pages\)/auth/signIn/page.tsx)
+    ![Feature_SignIn.PNG](/Misc/Feature_SignIn.PNG)
+
+3. [Sign Out](/app/\(pages\)/auth/signOut/page.tsx)
+    ![Feature_SignOut.PNG](/Misc/Feature_SignOut.PNG)
+
+4. [Manage Own User](/app/\(pages\)/auth/user/[user_uid]/page.tsx)
+    ![Feature_ManageOwnUser.PNG](/Misc/Feature_ManageOwnUser.PNG)
+
+5. Admin - Manage Box Type
     - [View all box types](/app/\(pages\)/protected/box_type/page.tsx)
     ![Feature_ViewAllBoxTypes.PNG](/Misc/Feature_ViewAllBoxTypes.PNG)
     - [Create new box type](/app/\(pages\)/protected/box_type/create/page.tsx)
@@ -44,7 +56,7 @@ Project workflow is visualized in the flowchart below.
     - [Update existing box type](/app/\(pages\)/protected/box_type/[box_type_uid]/update/page.tsx)
     ![Feature_UpdateExistingBoxType.PNG](/Misc/Feature_UpdateExistingBoxType.PNG)
 
-2. Admin - Manage Tray Type
+6. Admin - Manage Tray Type
     - [View all tray types](/app/\(pages\)/protected/tray_type/page.tsx)
     ![Feature_ViewAllTrayTypes.PNG](/Misc/Feature_ViewAllTrayTypes.PNG)
     - [Create new tray type](/app/\(pages\)/protected/tray_type/create/page.tsx)
@@ -52,7 +64,7 @@ Project workflow is visualized in the flowchart below.
     - [Update existing tray type](/app/\(pages\)/protected/tray_type/[tray_type_uid]/update/page.tsx)
     ![Feature_UpdateExistingTrayType.PNG](/Misc/Feature_UpdateExistingTrayType.PNG)
 
-3. Admin - Manage Shipdoc
+7. Admin - Manage Shipdoc
     - [View all shipdocs](/app/\(pages\)/protected/shipdoc/page.tsx)
     ![Feature_ViewAllShipdocs.PNG](/Misc/Feature_ViewAllShipdocs.PNG)
     - [Create new tray type](/app/\(pages\)/protected/shipdoc/create/page.tsx)
