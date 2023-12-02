@@ -1,5 +1,6 @@
 'use client'
 
+import { HomeIcon } from "@heroicons/react/24/outline"
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ export default function Header() {
     const { data: session } = useSession();
 
     const leftNavLinks = [
-        { name: "Home", href: "/", icon: "" },
+        { name: "Home", href: "/", icon: <HomeIcon className="h-5" /> },
     ];
 
     const midNavLinks = [
@@ -90,7 +91,9 @@ export default function Header() {
                     <nav>
                         {leftNavLinks.map((link) => {
                             return (
-                                <Link key={link.name} className={twMerge("no-underline", (pathname === link.href || pathname === "/") && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                <Link key={link.name} className={twMerge("no-underline", (pathname === link.href || pathname === "/") && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                    {link.icon ? link.icon : link.name}
+                                </Link>
                             );
                         })}
                     </nav>
@@ -130,7 +133,9 @@ export default function Header() {
                     <nav className="hidden md:flex md:items-center md:gap-8">
                         {midNavLinks.map((link) => {
                             return (
-                                <Link key={link.name} className={twMerge("no-underline", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                <Link key={link.name} className={twMerge("no-underline", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                    {link.icon ? link.icon : link.name}
+                                </Link>
                             );
                         })}
                     </nav>
@@ -161,7 +166,9 @@ export default function Header() {
                         <>
                             {(session ? rightNavLinksA : rightNavLinksB).map((link) => {
                                 return (
-                                    <Link key={link.name} className={twMerge("no-underline", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                    <Link key={link.name} className={twMerge("no-underline", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                        {link.icon ? link.icon : link.name}
+                                    </Link>
                                 );
                             })}
                         </>
@@ -187,7 +194,9 @@ export default function Header() {
                                     {actionNavLinks.map((link) => {
                                         return (
                                             <li key={link.name} className="relative">
-                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                                    {link.icon ? link.icon : link.name}
+                                                </Link>
                                             </li>
                                         );
                                     })}
@@ -205,7 +214,9 @@ export default function Header() {
                                         {actionNavLinksProtected.map((link) => {
                                             return (
                                                 <li key={link.name} className="relative">
-                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                                        {link.icon ? link.icon : link.name}
+                                                    </Link>
                                                 </li>
                                             );
                                         })}
@@ -225,7 +236,9 @@ export default function Header() {
                                         {actionNavLinksRestricted.map((link) => {
                                             return (
                                                 <li key={link.name} className="relative">
-                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                    <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                                        {link.icon ? link.icon : link.name}
+                                                    </Link>
                                                 </li>
                                             );
                                         })}
@@ -245,7 +258,9 @@ export default function Header() {
                                     {midNavLinks.map((link) => {
                                         return (
                                             <li key={link.name} className="relative">
-                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                                    {link.icon ? link.icon : link.name}
+                                                </Link>
                                             </li>
                                         );
                                     })}
@@ -263,7 +278,9 @@ export default function Header() {
                                     { (session ? rightNavLinksA : rightNavLinksB).map((link) => {
                                         return (
                                             <li key={link.name} className="relative">
-                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>{link.name}</Link>
+                                                <Link key={link.name} className={twMerge("no-underline py-1 pl-4 pr-3 truncate", pathname === link.href && "font-semibold text-purple-500 dark:text-purple-200")} href={link.href}>
+                                                    {link.icon ? link.icon : link.name}
+                                                </Link>
                                             </li>
                                         );
                                     })}
