@@ -190,6 +190,183 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
     return parsedForm.data
 };
 
+
+export async function readShippedBoxTotalPage(itemsPerPage: number, query?: string) {
+    noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.box.findMany({
+                include: {
+                    fk_box_type_uid: {
+                        select: {
+                            box_part_number: true,
+                            box_max_tray: true,
+                        },
+                    },
+                    fk_shipdoc_uid: {
+                        select: {
+                            shipdoc_number: true,
+                            shipdoc_contact: true,
+                        },
+                    },
+                },
+                where: {
+                    box_status: 'shipped',
+                    ...(query &&
+                        {
+                            OR: [
+                                ...(['box_uid', 'box_type_uid', 'shipdoc_uid'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
+                                ...(['box_part_number'].map((e) => {
+                                    return {
+                                        fk_box_type_uid: {
+                                            [e]: {
+                                                search: `${query}:*`,
+                                            },
+                                        },
+                                    };
+                                })),
+                                ...(['shipdoc_number', 'shipdoc_contact'].map((e) => {
+                                    return {
+                                        fk_shipdoc_uid: {
+                                            [e]: {
+                                                search: `${query}:*`,
+                                            },
+                                        },
+                                    };
+                                })),
+                            ],
+                        }),
+                },
+            });
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = readBoxSchema.array().safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('query', sql.VarChar, QUERY)
+                            .query`
+                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
+                                    bt.box_part_number, bt.box_max_tray,
+                                    s.shipdoc_number, s.shipdoc_contact,
+                                    FROM "packing"."box" b
+                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    WHERE b.box_status = 'shipped'
+                                    AND (b.box_uid like @query
+                                        OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
+                                    );
+                            `;
+            parsedForm = readBoxSchema.array().safeParse(result.recordset);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    revalidatePath('/history');
+    return totalPage
+};
+
+
+export async function readShippedBoxByPage(itemsPerPage: number, currentPage: number, query?: string) {
+    noStore();
+
+    // <dev only> 
+    // Artifically delay the response, to view the Suspense fallback skeleton
+    // console.log("waiting 3sec")
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    // console.log("ok")
+    // <dev only>
+
+    const OFFSET = (currentPage - 1) * itemsPerPage;
+    const QUERY = query ? `${query || ''}%` : '%';
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.$queryRaw`
+                                WITH gt AS (
+                                    SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                    FROM "packing"."tray"
+                                    GROUP BY box_uid
+                                )
+                                SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
+                                bt.box_part_number, bt.box_max_tray,
+                                s.shipdoc_number, s.shipdoc_contact,
+                                COALESCE(gt.box_current_tray, 0)::INT box_current_tray
+                                FROM "packing"."box" b
+                                INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                LEFT JOIN gt ON b.box_uid = gt.box_uid
+                                WHERE b.box_status = 'shipped'
+                                AND (
+                                    b.box_uid||'' like ${QUERY}
+                                    OR bt.box_part_number like ${QUERY} OR s.shipdoc_number like ${QUERY} OR s.shipdoc_contact like ${QUERY}
+                                )
+                                ORDER BY b.box_updated_dt desc
+                                OFFSET ${OFFSET} ROWS
+                                FETCH NEXT ${itemsPerPage} ROWS ONLY;
+                            `;
+            parsedForm = readBoxSchema.array().safeParse(result);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('offset', sql.Int, OFFSET)
+                            .input('limit', sql.Int, itemsPerPage)
+                            .input('query', sql.VarChar, QUERY)
+                            .query`
+                                    WITH gt AS (
+                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        FROM "packing"."tray"
+                                        GROUP BY box_uid
+                                    )
+                                    SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
+                                    bt.box_part_number, bt.box_max_tray,
+                                    s.shipdoc_number, s.shipdoc_contact,
+                                    COALERSE(gt.box_current_tray, 0)::INT box_current_tray
+                                    FROM "packing"."box" b
+                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    LEFT JOIN gt ON b.box_uid = gt.box_uid
+                                    WHERE b.box_status = 'shipped'
+                                    AND (b.box_uid like @query
+                                        OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
+                                    )
+                                    ORDER BY b.box_updated_dt desc
+                                    OFFSET @offset ROWS
+                                    FETCH NEXT @limit ROWS ONLY;
+                            `;
+            parsedForm = readBoxSchema.array().safeParse(result.recordset);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    revalidatePath('/history');
+    return parsedForm.data
+};
+
+
 export async function createBox(prevState: State, formData: FormData): StatePromise {
 
     const now = new Date();
