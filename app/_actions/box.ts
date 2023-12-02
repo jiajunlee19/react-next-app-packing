@@ -3,7 +3,7 @@
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema } from "@/app/_libs/zod_server";
+import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema, checkBoxShippableSchema } from "@/app/_libs/zod_server";
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -353,57 +353,6 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
 };
 
 
-export async function shipBox(box_uid: string): StatePromise {
-
-    const now = new Date();
-
-    const parsedForm = shipBoxSchema.safeParse({
-        box_uid: box_uid,
-        box_status: 'shipped',
-        box_updatedAt: now,
-    });
-
-    if (!parsedForm.success) {
-        return { 
-            error: parsedForm.error.flatten().fieldErrors,
-            message: "Invalid input provided, failed to ship box!"
-        };
-    };
-
-    try {
-
-        if (parsedEnv.DB_TYPE === "PRISMA") {
-            const result = await prisma.box.update({
-                where: {
-                    box_uid: parsedForm.data.box_uid,
-                },
-                data: parsedForm.data
-            });
-        }
-        else {
-            let pool = await sql.connect(sqlConfig);
-            const result = await pool.request()
-                            .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
-                            .input('box_status', sql.VarChar, parsedForm.data.box_status)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
-                            .query`UPDATE "packing"."box" 
-                                    SET box_status = @box_status, box_updatedAt = @box_updatedAt
-                                    WHERE box_uid = @box_uid;
-                            `;
-        }
-    } 
-    catch (err) {
-        return { 
-            error: {error: [getErrorMessage(err)]},
-            message: getErrorMessage(err)
-        }
-    }
-
-    revalidatePath('/box');
-    return { message: `Successfully shipped box ${parsedForm.data.box_uid}` }
-};
-
-
 export async function deleteBox(box_uid: string): StatePromise {
 
     const parsedForm = deleteBoxSchema.safeParse({
@@ -523,4 +472,137 @@ export async function readBoxById(box_uid: string) {
     }
 
     return parsedForm.data
+};
+
+
+export async function checkBoxShippableById(box_uid: string) {
+    noStore();
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result: any = await prisma.$queryRaw`
+                                    WITH gt AS (
+                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        FROM "packing"."tray"
+                                        WHERE box_uid = UUID(${box_uid})
+                                        GROUP BY box_uid
+                                    ),
+                                    gl AS (
+                                        SELECT t.box_uid, SUM(l.lot_qty)::INT box_current_drive
+                                        FROM "packing"."lot" l
+                                        INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                        GROUP BY t.box_uid
+                                    ) 
+                                    SELECT b.box_uid,
+                                    COALESCE(gt.box_current_tray, 0)::INT box_current_tray,
+                                    COALESCE(gl.box_current_drive, 0)::INT box_current_drive
+                                    FROM "packing"."box" b
+                                    LEFT JOIN gt ON b.box_uid = gt.box_uid
+                                    LEFT JOIN gl ON b.box_uid = gl.box_uid
+                                    WHERE b.box_uid = UUID(${box_uid});
+                            `;
+            parsedForm = checkBoxShippableSchema.safeParse(result[0]);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('box_uid', sql.VarChar, box_uid)
+                            .query`
+                                    WITH gt AS (
+                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        FROM "packing"."tray"
+                                        WHERE box_uid = @box_uid
+                                        GROUP BY box_uid
+                                    ),
+                                    gl AS (
+                                        SELECT t.box_uid, SUM(l.lot_qty)::INT box_current_drive
+                                        FROM "packing"."lot" l
+                                        INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                        GROUP BY t.box_uid
+                                    ) 
+                                    SELECT b.box_uid,
+                                    COALESCE(gt.box_current_tray, 0)::INT box_current_tray,
+                                    COALESCE(gl.box_current_drive, 0)::INT box_current_drive
+                                    FROM "packing"."box" b
+                                    LEFT JOIN gt ON b.box_uid = gt.box_uid
+                                    LEFT JOIN gl ON b.box_uid = gl.box_uid
+                                    WHERE b.box_uid = @box_uid;
+                            `;
+            parsedForm = checkBoxShippableSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    if (parsedForm.data.box_current_tray === 0 || parsedForm.data.box_current_drive === 0) {
+        return false
+    }
+
+    return true
+};
+
+
+export async function shipBox(box_uid: string): StatePromise {
+
+    const canShip = await checkBoxShippableById(box_uid);
+
+    if (!canShip) {
+        return { 
+            error: {error: ["Box current tray count or current drive qty is zero. Box is not shippable !"]},
+            message: "Box current tray count or current drive qty is zero. Box is not shippable !"
+        }
+    } 
+
+    const now = new Date();
+
+    const parsedForm = shipBoxSchema.safeParse({
+        box_uid: box_uid,
+        box_status: 'shipped',
+        box_updatedAt: now,
+    });
+
+    if (!parsedForm.success) {
+        return {
+            error: parsedForm.error.flatten().fieldErrors,
+            message: "Invalid input provided, failed to ship box!"
+        };
+    };
+
+    try {
+
+        if (parsedEnv.DB_TYPE === "PRISMA") {
+            const result = await prisma.box.update({
+                where: {
+                    box_uid: parsedForm.data.box_uid,
+                },
+                data: parsedForm.data
+            });
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
+                            .input('box_status', sql.VarChar, parsedForm.data.box_status)
+                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
+                            .query`UPDATE "packing"."box" 
+                                    SET box_status = @box_status, box_updatedAt = @box_updatedAt
+                                    WHERE box_uid = @box_uid;
+                            `;
+        }
+    } 
+    catch (err) {
+        return { 
+            error: {error: [getErrorMessage(err)]},
+            message: getErrorMessage(err)
+        }
+    }
+
+    revalidatePath('/box');
+    return { message: `Successfully shipped box ${parsedForm.data.box_uid}` }
 };
