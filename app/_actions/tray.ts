@@ -66,11 +66,10 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
                             .input('query', sql.VarChar, QUERY)
-                            .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
+                            .query`SELECT t.box_uid, t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
@@ -112,7 +111,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                                     FROM "packing"."lot" 
                                     GROUP BY tray_uid
                                 )
-                                SELECT t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
+                                SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                 tt.tray_part_number, tt.tray_max_drive,
                                 COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
                                 FROM "packing"."tray" t
@@ -141,7 +140,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                                         FROM "packing"."lot" 
                                         GROUP BY tray_uid
                                     )
-                                    SELECT t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
+                                    SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t
