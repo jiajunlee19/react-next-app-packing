@@ -27,15 +27,6 @@ export default async function Box({ searchParams }: { searchParams?: { itemsPerP
 
     const readAction = readBoxByPage;
 
-    const columnListDisplay: (keyof TReadBoxSchema)[] = ['box_uid', 'box_part_number', 'shipdoc_number', 'shipdoc_contact', 'box_status', 'box_createdAt', 'box_updatedAt'];
-
-    const primaryKey: (keyof TReadBoxSchema) = 'box_uid';
-
-    // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-    const hrefUpdate = "/box/[placeholder-id]/tray";
-
-    const deleteAction = deleteBox;
-
     return (
         <>
             <h1>{pageTitle}</h1>
