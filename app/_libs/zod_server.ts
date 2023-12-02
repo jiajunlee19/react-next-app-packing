@@ -82,10 +82,29 @@ export const deleteBoxSchema = createBoxSchema.pick({
     box_uid: true,
 });
 
+export const checkBoxShippableSchema = createBoxSchema.pick({
+    box_uid: true,
+}).extend({
+    box_current_tray: z.coerce.number().int().min(0),
+    box_current_drive: z.coerce.number().int().min(0),
+});
+
 export const shipBoxSchema = createBoxSchema.pick({
     box_uid: true,
     box_status: true,
     box_updatedAt: true,
+});
+
+export const shippedBoxHistorySchema = createBoxSchema.pick({
+    box_uid: true,
+    box_status: true,
+    box_updatedAt: true,
+}).extend({
+    shipdoc_number: z.string().min(1),
+    shipdoc_contact: z.string().min(1),
+    tray_uid: z.string().min(1).uuid(),
+    lot_id: z.string().min(1),
+    lot_qty: z.coerce.number().int().min(1),
 });
 
 
