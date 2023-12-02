@@ -454,8 +454,8 @@ export async function signUp(email: TEmailSchema, password: TPasswordSchema): St
         email: email,
         password: password,
         role: 'user',
-        user_createdAt: now,
-        user_updatedAt: now,
+        user_created_dt: now,
+        user_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -479,11 +479,11 @@ export async function signUp(email: TEmailSchema, password: TPasswordSchema): St
                             .input('email', sql.VarChar, parsedForm.data.email)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
                             .input('role', sql.VarChar, parsedForm.data.role)
-                            .input('user_createdAt', sql.DateTime, parsedForm.data.user_createdAt)
-                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .input('user_created_dt', sql.DateTime, parsedForm.data.user_created_dt)
+                            .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
                             .query`INSERT INTO "packing"."user" 
-                                    (user_uid, email, password, role, user_createdAt, user_updatedAt)
-                                    VALUES (@user_uid, @email, @password, @role, @user_createdAt, @user_updatedAt);
+                                    (user_uid, email, password, role, user_created_dt, user_updated_dt)
+                                    VALUES (@user_uid, @email, @password, @role, @user_created_dt, @user_updated_dt);
                             `;
         }
     } 
@@ -504,7 +504,7 @@ export async function updateUser(formData: FormData): StatePromise {
     const parsedForm = updateUserSchema.safeParse({
         user_uid: formData.get("user_uid"),
         password: formData.get("password"),
-        user_updatedAt: now,
+        user_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -529,9 +529,9 @@ export async function updateUser(formData: FormData): StatePromise {
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
-                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
                             .query`UPDATE "packing"."user" 
-                                    SET password = @password, user_updatedAt = @user_updatedAt
+                                    SET password = @password, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
         }
@@ -607,7 +607,7 @@ export async function readUserById(user_uid: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, user_uid)
-                            .query`SELECT user_uid, email, role, user_createdAt, user_updatedAt 
+                            .query`SELECT user_uid, email, role, user_created_dt, user_updated_dt 
                                     FROM "packing"."user"
                                     WHERE user_uid = @user_uid;
                             `;
@@ -633,7 +633,7 @@ export async function updateRole(formData: FormData): StatePromise {
     const parsedForm = updateRoleSchema.safeParse({
         user_uid: formData.get("user_uid"),
         role: formData.get("role"),
-        user_updatedAt: now,
+        user_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -658,9 +658,9 @@ export async function updateRole(formData: FormData): StatePromise {
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('role', sql.VarChar, parsedForm.data.role)
-                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
                             .query`UPDATE "packing"."user" 
-                                    SET role = @role, user_updatedAt = @user_updatedAt
+                                    SET role = @role, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
         }
@@ -682,7 +682,7 @@ export async function updateRoleAdmin(formData: FormData): StatePromise {
     const parsedForm = updateRoleAdminSchema.safeParse({
         user_uid: formData.get("user_uid"),
         role: formData.get("role"),
-        user_updatedAt: now,
+        user_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -707,9 +707,9 @@ export async function updateRoleAdmin(formData: FormData): StatePromise {
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('role', sql.VarChar, parsedForm.data.role)
-                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
                             .query`UPDATE "packing"."user" 
-                                    SET role = @role, user_updatedAt = @user_updatedAt
+                                    SET role = @role, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
         }

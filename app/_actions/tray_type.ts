@@ -44,7 +44,7 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query);
                             `;
@@ -107,7 +107,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query)
                                     ORDER BY tray_part_number asc
@@ -153,7 +153,7 @@ export async function readTrayType() {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type";
                             `;
             parsedForm = readTrayTypeSchema.array().safeParse(result.recordset);
@@ -196,7 +196,7 @@ export async function readTrayTypeUid(tray_part_number: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_part_number', sql.VarChar, tray_part_number)
-                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE tray_part_number = @tray_part_number;
                             `;
@@ -224,8 +224,8 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
         tray_type_uid: uuidv5(formData.get('tray_part_number') as string, UUID5_SECRET),
         tray_part_number: formData.get('tray_part_number'),
         tray_max_drive: formData.get('tray_max_drive'),
-        tray_type_createdAt: now,
-        tray_type_updatedAt: now,
+        tray_type_created_dt: now,
+        tray_type_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -248,11 +248,11 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('tray_part_number', sql.VarChar, parsedForm.data.tray_part_number)
                             .input('tray_max_drive', sql.Int, parsedForm.data.tray_max_drive)
-                            .input('tray_type_createdAt', sql.DateTime, parsedForm.data.tray_type_createdAt)
-                            .input('tray_type_updatedAt', sql.DateTime, parsedForm.data.tray_type_updatedAt)
+                            .input('tray_type_created_dt', sql.DateTime, parsedForm.data.tray_type_created_dt)
+                            .input('tray_type_updated_dt', sql.DateTime, parsedForm.data.tray_type_updated_dt)
                             .query`INSERT INTO "packing"."tray_type" 
-                                    (tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt)
-                                    VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_createdAt, @tray_type_updatedAt);
+                                    (tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt)
+                                    VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_created_dt, @tray_type_updated_dt);
                             `;
         }
     } 
@@ -277,7 +277,7 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
     const parsedForm = updateTrayTypeSchema.safeParse({
         tray_type_uid: formData.get('tray_type_uid'),
         tray_max_drive: formData.get('tray_max_drive'),
-        tray_type_updatedAt: now,
+        tray_type_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -302,9 +302,9 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
             const result = await pool.request()
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('tray_max_drive', sql.Int, parsedForm.data.tray_max_drive)
-                            .input('tray_type_updatedAt', sql.DateTime, parsedForm.data.tray_type_updatedAt)
+                            .input('tray_type_updated_dt', sql.DateTime, parsedForm.data.tray_type_updated_dt)
                             .query`UPDATE "packing"."tray_type" 
-                                    SET tray_max_drive = @tray_max_drive, tray_type_updatedAt = @tray_type_updatedAt
+                                    SET tray_max_drive = @tray_max_drive, tray_type_updated_dt = @tray_type_updated_dt
                                     WHERE tray_type_uid = @tray_type_uid;
                             `;
         }
@@ -379,7 +379,7 @@ export async function readTrayTypeById(tray_type_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt 
+                            .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE tray_type_uid = @tray_type_uid;
                             `;

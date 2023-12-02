@@ -20,8 +20,8 @@ export const signUpSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
     role: roleSchema,
-    user_createdAt: z.coerce.date(),
-    user_updatedAt: z.coerce.date(),
+    user_created_dt: z.coerce.date(),
+    user_updated_dt: z.coerce.date(),
 });
 
 
@@ -37,8 +37,8 @@ export const signInSchema = signUpSchema.pick({
 export type TReadUserSchema = z.infer<typeof readUserSchema>;
 
 export const readUserSchema = signUpSchema.omit({
-    user_createdAt: true,
-    user_updatedAt: true,
+    user_created_dt: true,
+    user_updated_dt: true,
 });
 
 
@@ -65,7 +65,7 @@ export type TUpdateUserSchema = z.infer<typeof updateUserSchema>;
 export const updateUserSchema = signUpSchema.pick({
     user_uid: true,
     password: true,
-    user_updatedAt: true,
+    user_updated_dt: true,
 });
 
 
@@ -83,14 +83,14 @@ export type TUpdateRoleSchema = z.infer<typeof updateRoleSchema>;
 export const updateRoleSchema = signUpSchema.pick({
     user_uid: true,
     role: true,
-    user_updatedAt: true,
+    user_updated_dt: true,
 });
 
 export type TUpdateRoleAdminSchema = z.infer<typeof updateRoleAdminSchema>;
 
 export const updateRoleAdminSchema = signUpSchema.pick({
     user_uid: true,
-    user_updatedAt: true,
+    user_updated_dt: true,
 }).extend({
     role: roleWithoutBossSchema,
 });

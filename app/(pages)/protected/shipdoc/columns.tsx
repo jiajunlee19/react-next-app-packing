@@ -38,19 +38,19 @@ export const columns = [
             type: "text",
         },
     }),
-    columnHelper.accessor("shipdoc_createdAt", {
-        id: "shipdoc_createdAt",
-        header: "shipdoc_createdAt",
-        footer: "shipdoc_createdAt",
+    columnHelper.accessor("shipdoc_created_dt", {
+        id: "shipdoc_created_dt",
+        header: "shipdoc_created_dt",
+        footer: "shipdoc_created_dt",
         meta: {
             type: "date",
         },
         cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
-    columnHelper.accessor("shipdoc_updatedAt", {
-        id: "shipdoc_updatedAt",
-        header: "shipdoc_updatedAt",
-        footer: "shipdoc_updatedAt",
+    columnHelper.accessor("shipdoc_updated_dt", {
+        id: "shipdoc_updated_dt",
+        header: "shipdoc_updated_dt",
+        footer: "shipdoc_updated_dt",
         meta: {
             type: "date",
         },

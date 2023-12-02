@@ -38,19 +38,19 @@ export const columns = [
             type: "number",
         },
     }),
-    columnHelper.accessor("lot_createdAt", {
-        id: "lot_createdAt",
-        header: "lot_createdAt",
-        footer: "lot_createdAt",
+    columnHelper.accessor("lot_created_dt", {
+        id: "lot_created_dt",
+        header: "lot_created_dt",
+        footer: "lot_created_dt",
         meta: {
             type: "date",
         },
         cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
-    columnHelper.accessor("lot_updatedAt", {
-        id: "lot_updatedAt",
-        header: "lot_updatedAt",
-        footer: "lot_updatedAt",
+    columnHelper.accessor("lot_updated_dt", {
+        id: "lot_updated_dt",
+        header: "lot_updated_dt",
+        footer: "lot_updated_dt",
         meta: {
             type: "date",
         },

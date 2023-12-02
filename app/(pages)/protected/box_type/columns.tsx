@@ -38,19 +38,19 @@ export const columns = [
             type: "number",
         },
     }),
-    columnHelper.accessor("box_type_createdAt", {
-        id: "box_type_createdAt",
-        header: "box_type_createdAt",
-        footer: "box_type_createdAt",
+    columnHelper.accessor("box_type_created_dt", {
+        id: "box_type_created_dt",
+        header: "box_type_created_dt",
+        footer: "box_type_created_dt",
         meta: {
             type: "date",
         },
         cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
-    columnHelper.accessor("box_type_updatedAt", {
-        id: "box_type_updatedAt",
-        header: "box_type_updatedAt",
-        footer: "box_type_updatedAt",
+    columnHelper.accessor("box_type_updated_dt", {
+        id: "box_type_updated_dt",
+        header: "box_type_updated_dt",
+        footer: "box_type_updated_dt",
         meta: {
             type: "date",
         },

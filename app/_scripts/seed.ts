@@ -34,11 +34,11 @@ async function seedUser() {
                 .input('email', sql.VarChar, d.email)
                 .input('password', sql.VarChar, await bcrypt.hash(d.password, 10))
                 .input('role', sql.VarChar, d.role)
-                .input('user_createdAt', sql.DateTime, d.user_createdAt)
-                .input('user_updatedAt', sql.DateTime, d.user_updatedAt)
+                .input('user_created_dt', sql.DateTime, d.user_created_dt)
+                .input('user_updated_dt', sql.DateTime, d.user_updated_dt)
                 .query`INSERT INTO "packing"."user" 
-                        (user_uid, email, password, role, user_createdAt, user_updatedAt)
-                        VALUES (@user_uid, @email, @password, @role, @user_createdAt, @user_updatedAt);
+                        (user_uid, email, password, role, user_created_dt, user_updated_dt)
+                        VALUES (@user_uid, @email, @password, @role, @user_created_dt, @user_updated_dt);
                 `;
             }));
         }
@@ -74,11 +74,11 @@ async function seedBoxType() {
                 .input('box_type_uid', sql.VarChar, d.box_type_uid)
                 .input('box_part_number', sql.VarChar, d.box_part_number)
                 .input('box_max_tray', sql.Int, d.box_max_tray)
-                .input('box_type_createdAt', sql.DateTime, d.box_type_createdAt)
-                .input('box_type_updatedAt', sql.DateTime, d.box_type_updatedAt)
+                .input('box_type_created_dt', sql.DateTime, d.box_type_created_dt)
+                .input('box_type_updated_dt', sql.DateTime, d.box_type_updated_dt)
                 .query`INSERT INTO "packing"."box_type" 
-                        (box_type_uid, box_part_number, box_max_tray, box_type_createdAt, box_type_updatedAt)
-                        VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_createdAt, @box_type_updatedAt);
+                        (box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt)
+                        VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_created_dt, @box_type_updated_dt);
                 `;
             }));
         }
@@ -112,11 +112,11 @@ async function seedTrayType() {
                 .input('tray_type_uid', sql.VarChar, d.tray_type_uid)
                 .input('tray_part_number', sql.VarChar, d.tray_part_number)
                 .input('tray_max_drive', sql.Int, d.tray_max_drive)
-                .input('tray_type_createdAt', sql.DateTime, d.tray_type_createdAt)
-                .input('tray_type_updatedAt', sql.DateTime, d.tray_type_updatedAt)
+                .input('tray_type_created_dt', sql.DateTime, d.tray_type_created_dt)
+                .input('tray_type_updated_dt', sql.DateTime, d.tray_type_updated_dt)
                 .query`INSERT INTO "packing"."@tray_type" 
-                        (tray_type_uid, tray_part_number, tray_max_drive, tray_type_createdAt, tray_type_updatedAt)
-                        VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_createdAt, @tray_type_updatedAt);
+                        (tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt)
+                        VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_created_dt, @tray_type_updated_dt);
                 `;
             }));
         }
@@ -150,11 +150,11 @@ async function seedShipdoc() {
                 .input('shipdoc_uid', sql.VarChar, d.shipdoc_uid)
                 .input('shipdoc_number', sql.Int, d.shipdoc_number)
                 .input('shipdoc_contact', sql.VarChar, d.shipdoc_contact)
-                .input('shipdoc_createdAt', sql.DateTime, d.shipdoc_createdAt)
-                .input('shipdoc_updatedAt', sql.DateTime, d.shipdoc_updatedAt)
+                .input('shipdoc_created_dt', sql.DateTime, d.shipdoc_created_dt)
+                .input('shipdoc_updated_dt', sql.DateTime, d.shipdoc_updated_dt)
                 .query`INSERT INTO "packing"."shipdoc" 
-                        (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt)
-                        VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_createdAt, @shipdoc_updatedAt);
+                        (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt)
+                        VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_created_dt, @shipdoc_updated_dt);
                 `;
             }));
         }
@@ -189,11 +189,11 @@ async function seedBox() {
                 .input('box_type_uid', sql.VarChar, d.box_type_uid)
                 .input('shipdoc_uid', sql.VarChar, d.shipdoc_uid)
                 .input('box_status', sql.VarChar, d.box_status)
-                .input('box_createdAt', sql.DateTime, d.box_createdAt)
-                .input('box_updatedAt', sql.DateTime, d.box_updatedAt)
+                .input('box_created_dt', sql.DateTime, d.box_created_dt)
+                .input('box_updated_dt', sql.DateTime, d.box_updated_dt)
                 .query`INSERT INTO "packing"."box" 
-                        (box_uid, box_type_uid, shipdoc_uid, box_status, box_createdAt, box_updatedAt)
-                        VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_createdAt, @box_updatedAt);
+                        (box_uid, box_type_uid, shipdoc_uid, box_status, box_created_dt, box_updated_dt)
+                        VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_created_dt, @box_updated_dt);
                 `;
             }));
         }
@@ -227,11 +227,11 @@ async function seedTray() {
                 .input('tray_uid', sql.VarChar, d.tray_uid)
                 .input('box_uid', sql.Int, d.box_uid)
                 .input('tray_type_uid', sql.VarChar, d.tray_type_uid)
-                .input('tray_createdAt', sql.DateTime, d.tray_createdAt)
-                .input('tray_updatedAt', sql.DateTime, d.tray_updatedAt)
+                .input('tray_created_dt', sql.DateTime, d.tray_created_dt)
+                .input('tray_updated_dt', sql.DateTime, d.tray_updated_dt)
                 .query`INSERT INTO "packing"."@tray" 
-                        (tray_uid, box_uid, tray_type_uid, tray_createdAt, tray_updatedAt)
-                        VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_createdAt, @tray_updatedAt);
+                        (tray_uid, box_uid, tray_type_uid, tray_created_dt, tray_updated_dt)
+                        VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_created_dt, @tray_updated_dt);
                 `;
             }));
         }
@@ -266,11 +266,11 @@ async function seedLot() {
                 .input('tray_uid', sql.VarChar, d.tray_uid)
                 .input('lot_id', sql.VarChar, d.lot_id)
                 .input('lot_qty', sql.Int, d.lot_qty)
-                .input('lot_createdAt', sql.DateTime, d.lot_createdAt)
-                .input('lot_updatedAt', sql.DateTime, d.lot_updatedAt)
+                .input('lot_created_dt', sql.DateTime, d.lot_created_dt)
+                .input('lot_updated_dt', sql.DateTime, d.lot_updated_dt)
                 .query`INSERT INTO "packing"."lot" 
-                        (lot_uid, tray_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt)
-                        VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_createdAt, @lot_updatedAt);
+                        (lot_uid, tray_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt)
+                        VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_created_dt, @lot_updated_dt);
                 `;
             }));
         }

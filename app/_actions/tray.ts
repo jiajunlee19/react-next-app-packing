@@ -65,13 +65,13 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                            .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     SUM(l.lot_qty) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                     INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
-                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
@@ -184,7 +184,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                                         FROM "packing"."lot" 
                                         GROUP BY tray_uid
                                     )
-                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     IFNULL(l.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t
@@ -193,7 +193,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
-                                    ORDER BY t.tray_updatedAt desc
+                                    ORDER BY t.tray_updated_dt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -224,8 +224,8 @@ export async function createTray(prevState: State, formData: FormData): StatePro
         tray_uid: uuidv5((tray_type_uid as string + formData.get('box_uid') as string + now.toString()), UUID5_SECRET),
         box_uid: formData.get('box_uid'),
         tray_type_uid: tray_type_uid,
-        tray_createdAt: now,
-        tray_updatedAt: now,
+        tray_created_dt: now,
+        tray_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -257,11 +257,11 @@ export async function createTray(prevState: State, formData: FormData): StatePro
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
-                            .input('tray_createdAt', sql.DateTime, parsedForm.data.tray_createdAt)
-                            .input('tray_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
+                            .input('tray_created_dt', sql.DateTime, parsedForm.data.tray_created_dt)
+                            .input('tray_updated_dt', sql.DateTime, parsedForm.data.tray_updated_dt)
                             .query`INSERT INTO "packing"."tray" 
-                                    (tray_uid, box_uid, tray_type_uid, tray_createdAt, tray_updatedAt)
-                                    VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_createdAt, @tray_updatedAt);
+                                    (tray_uid, box_uid, tray_type_uid, tray_created_dt, tray_updated_dt)
+                                    VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_created_dt, @tray_updated_dt);
                             `;
         }
     } 
@@ -285,7 +285,7 @@ export async function updateTray(tray_uid: string): StatePromise {
 
     const parsedForm = updateTraySchema.safeParse({
         tray_uid: tray_uid,
-        tray_updatedAt: now,
+        tray_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -309,9 +309,9 @@ export async function updateTray(tray_uid: string): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.tray_updatedAt)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.tray_updated_dt)
                             .query`UPDATE "packing"."tray" 
-                                    SET tray_updatedAt = @tray_updatedAt
+                                    SET tray_updated_dt = @tray_updated_dt
                                     WHERE tray_uid = @tray_uid;
                             `;
         }
@@ -425,7 +425,7 @@ export async function readTrayById(tray_uid: string) {
                                         GROUP BY tray_uid
                                         WHERE tray_uid = @tray_uid
                                     )
-                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_createdAt, t.tray_updatedAt,
+                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     IFNULL(l.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t

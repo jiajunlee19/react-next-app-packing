@@ -79,7 +79,7 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
+                            .query`SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact
                                     FROM "packing"."box" b
@@ -210,7 +210,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                                         FROM "packing"."tray"
                                         GROUP BY box_uid
                                     )
-                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_createdAt, b.box_updatedAt,
+                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact,
                                     IFNULL(t.box_current_tray, 0)::INT box_current_tray
@@ -222,7 +222,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                                     AND (b.box_uid like @query OR b.box_type_uid like @query OR b.shipdoc_uid like @query 
                                         OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
                                     )
-                                    ORDER BY b.box_updatedAt desc
+                                    ORDER BY b.box_updated_dt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -255,8 +255,8 @@ export async function createBox(prevState: State, formData: FormData): StateProm
         box_type_uid: box_type_uid,
         shipdoc_uid: shipdoc_uid,
         box_status: 'active',
-        box_createdAt: now,
-        box_updatedAt: now,
+        box_created_dt: now,
+        box_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -280,11 +280,11 @@ export async function createBox(prevState: State, formData: FormData): StateProm
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
-                            .input('box_createdAt', sql.DateTime, parsedForm.data.box_createdAt)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
+                            .input('box_created_dt', sql.DateTime, parsedForm.data.box_created_dt)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
                             .query`INSERT INTO "packing"."box" 
-                                    (box_uid, box_type_uid, shipdoc_uid, box_status, box_createdAt, box_updatedAt)
-                                    VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_createdAt, @box_updatedAt);
+                                    (box_uid, box_type_uid, shipdoc_uid, box_status, box_created_dt, box_updated_dt)
+                                    VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_created_dt, @box_updated_dt);
                             `;
         }
     } 
@@ -309,7 +309,7 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
     const parsedForm = updateBoxSchema.safeParse({
         box_uid: formData.get('box_uid'),
         shipdoc_uid: formData.get('shipdoc_uid'),
-        box_updatedAt: now,
+        box_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -334,9 +334,9 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
                             .query`UPDATE "packing"."box" 
-                                    SET shipdoc_uid = @shipdoc_uid, box_updatedAt = @box_updatedAt
+                                    SET shipdoc_uid = @shipdoc_uid, box_updated_dt = @box_updated_dt
                                     WHERE box_uid = @box_uid;
                             `;
         }
@@ -401,62 +401,41 @@ export async function readBoxById(box_uid: string) {
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
-            const grouped = await prisma.tray.groupBy({
-                by: ['box_uid'],
-                _count: {
-                    tray_uid: true,
-                },
-                where: {
-                    fk_box_uid: {
-                        box_uid: box_uid,
-                    },
-                },
-            });
-            const result = await prisma.box.findUnique({
-                include: {
-                    fk_box_type_uid: {
-                        select: {
-                            box_part_number: true,
-                            box_max_tray: true,
-                        },
-                    },
-                },
-                where: {
-                    box_uid: box_uid,
-                },
-            });
-            const flattenResult = flattenNestedObject(result);
-            let summary = {};
-            if (grouped[0]?.box_uid === flattenResult?.box_uid) {
-                summary = {
-                    ...flattenResult,
-                    'box_current_tray': grouped[0]._count.tray_uid,
-                };
-            }
-            else {
-                summary = {
-                    ...flattenResult,
-                    'box_current_tray': 0,
-                };
-            }
-            parsedForm = readBoxSchema.safeParse(summary);
+            const result: any = await prisma.$queryRaw`
+                                WITH gt AS (
+                                    SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                    FROM "packing"."tray"
+                                    WHERE box_uid = UUID(${box_uid})
+                                    GROUP BY box_uid
+                                )
+                                SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
+                                bt.box_part_number, bt.box_max_tray,
+                                COALESCE(gt.box_current_tray, 0)::INT box_current_tray
+                                FROM "packing"."box" b
+                                INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                LEFT JOIN gt ON b.box_uid = gt.box_uid
+                                WHERE b.box_uid = UUID(${box_uid});
+                            `;
+            console.log(result)
+            parsedForm = readBoxSchema.safeParse(result[0]);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
-                            .query`WITH t as (
-                                        SELECT box_uid, COUNT(tray_uid) box_current_tray
+                            .query`
+                                    WITH gt AS (
+                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
                                         FROM "packing"."tray"
-                                        GROUP BY box_uid
                                         WHERE box_uid = @box_uid
+                                        GROUP BY box_uid
                                     )
-                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_createdAt, b.box_updatedAt,
+                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
-                                    IFNULL(t.box_current_tray, 0)::INT box_current_tray
+                                    COALESCE(t.box_current_tray, 0)::INT box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    OUTER JOIN t ON b.box_uid = t.box_uid
+                                    LEFT JOIN t ON b.box_uid = t.box_uid
                                     WHERE b.box_uid = @box_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
@@ -564,7 +543,7 @@ export async function shipBox(box_uid: string): StatePromise {
     const parsedForm = shipBoxSchema.safeParse({
         box_uid: box_uid,
         box_status: 'shipped',
-        box_updatedAt: now,
+        box_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -589,9 +568,9 @@ export async function shipBox(box_uid: string): StatePromise {
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
                             .query`UPDATE "packing"."box" 
-                                    SET box_status = @box_status, box_updatedAt = @box_updatedAt
+                                    SET box_status = @box_status, box_updated_dt = @box_updated_dt
                                     WHERE box_uid = @box_uid;
                             `;
         }

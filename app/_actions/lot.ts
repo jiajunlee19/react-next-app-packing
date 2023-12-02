@@ -58,7 +58,7 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, tray_uid)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_createdAt, l.lot_updatedAt
+                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
                                     INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
@@ -135,12 +135,12 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_createdAt, l.lot_updatedAt
+                            .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
                                     INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
                                     AND (lot_uid like @query OR lot_id like @query)
-                                    ORDER BY lot_updatedAt desc
+                                    ORDER BY lot_updated_dt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
@@ -168,8 +168,8 @@ export async function createLot(prevState: State, formData: FormData): StateProm
         tray_uid: formData.get('tray_uid'),
         lot_id: formData.get('lot_id'),
         lot_qty: formData.get('lot_qty'),
-        lot_createdAt: now,
-        lot_updatedAt: now,
+        lot_created_dt: now,
+        lot_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -202,11 +202,11 @@ export async function createLot(prevState: State, formData: FormData): StateProm
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
                             .input('lot_id', sql.VarChar, parsedForm.data.lot_id)
                             .input('lot_qty', sql.Int, parsedForm.data.lot_qty)
-                            .input('lot_createdAt', sql.DateTime, parsedForm.data.lot_createdAt)
-                            .input('lot_updatedAt', sql.DateTime, parsedForm.data.lot_updatedAt)
+                            .input('lot_created_dt', sql.DateTime, parsedForm.data.lot_created_dt)
+                            .input('lot_updated_dt', sql.DateTime, parsedForm.data.lot_updated_dt)
                             .query`INSERT INTO "packing"."lot" 
-                                    (lot_uid, tray_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt)
-                                    VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_createdAt, @lot_updatedAt);
+                                    (lot_uid, tray_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt)
+                                    VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_created_dt, @lot_updated_dt);
                             `;
         }
     } 
@@ -231,7 +231,7 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
     const parsedForm = updateLotSchema.safeParse({
         lot_uid: formData.get('lot_uid'),
         lot_qty: formData.get('lot_qty'),
-        lot_updatedAt: now,
+        lot_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -256,9 +256,9 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
             const result = await pool.request()
                             .input('lot_uid', sql.VarChar, parsedForm.data.lot_uid)
                             .input('lot_qty', sql.Int, parsedForm.data.lot_qty)
-                            .input('box_updatedAt', sql.DateTime, parsedForm.data.lot_updatedAt)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.lot_updated_dt)
                             .query`UPDATE "packing"."lot" 
-                                    SET lot_qty = @lot_qty, lot_updatedAt = @lot_updatedAt
+                                    SET lot_qty = @lot_qty, lot_updated_dt = @lot_updated_dt
                                     WHERE lot_uid = @lot_uid;
                             `;
         }
@@ -334,7 +334,7 @@ export async function readLotById(lot_uid: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('lot_uid', sql.VarChar, lot_uid)
-                            .query`SELECT lot_uid, lot_id, lot_qty, lot_createdAt, lot_updatedAt 
+                            .query`SELECT lot_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt 
                                     FROM "packing"."lot"
                                     WHERE lot_uid = @lot_uid;
                             `;

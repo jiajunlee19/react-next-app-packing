@@ -19,8 +19,8 @@ model User {
   email String @db.VarChar(100)
   password String @db.VarChar(100)
   role Role @default(user)
-  user_createdAt DateTime @db.Timestamp()
-  user_updatedAt DateTime @db.Timestamp()
+  user_created_dt DateTime @db.Timestamp()
+  user_updated_dt DateTime @db.Timestamp()
 
   @@map(name: "user")
   @@schema("packing")
@@ -30,8 +30,8 @@ model BoxType {
   box_type_uid String @db.Uuid @id @unique
   box_part_number String @db.VarChar(50)
   box_max_tray Int @db.Integer
-  box_type_createdAt DateTime @db.Timestamp()
-  box_type_updatedAt DateTime @db.Timestamp()
+  box_type_created_dt DateTime @db.Timestamp()
+  box_type_updated_dt DateTime @db.Timestamp()
 
   boxes Box[]
 
@@ -43,8 +43,8 @@ model TrayType {
   tray_type_uid String @db.Uuid @id @unique
   tray_part_number String @db.VarChar(50)
   tray_max_drive Int @db.Integer
-  tray_type_createdAt DateTime @db.Timestamp()
-  tray_type_updatedAt DateTime @db.Timestamp()
+  tray_type_created_dt DateTime @db.Timestamp()
+  tray_type_updated_dt DateTime @db.Timestamp()
 
   trays Tray[]
 
@@ -57,8 +57,8 @@ model Shipdoc {
   shipdoc_uid String @db.Uuid @id @unique
   shipdoc_number String @db.VarChar(50)
   shipdoc_contact String @db.VarChar(50)
-  shipdoc_createdAt DateTime @db.Timestamp()
-  shipdoc_updatedAt DateTime @db.Timestamp()
+  shipdoc_created_dt DateTime @db.Timestamp()
+  shipdoc_updated_dt DateTime @db.Timestamp()
 
   Boxes Box[]
 
@@ -78,8 +78,8 @@ model Box {
   box_type_uid String @db.Uuid
   shipdoc_uid String @db.Uuid
   box_status Status @default(active)
-  box_createdAt DateTime @db.Timestamp()
-  box_updatedAt DateTime @db.Timestamp()
+  box_created_dt DateTime @db.Timestamp()
+  box_updated_dt DateTime @db.Timestamp()
 
   trays Tray[]
 
@@ -94,8 +94,8 @@ model Tray {
   tray_uid String @db.Uuid @id @unique
   box_uid String @db.Uuid
   tray_type_uid String @db.Uuid
-  tray_createdAt DateTime @db.Timestamp()
-  tray_updatedAt DateTime @db.Timestamp()
+  tray_created_dt DateTime @db.Timestamp()
+  tray_updated_dt DateTime @db.Timestamp()
 
   lots Lot[]
 
@@ -111,8 +111,8 @@ model Lot {
   tray_uid String @db.Uuid
   lot_id String @db.VarChar(50)
   lot_qty Int @db.Integer
-  lot_createdAt DateTime @db.Timestamp()
-  lot_updatedAt DateTime @db.Timestamp()
+  lot_created_dt DateTime @db.Timestamp()
+  lot_updated_dt DateTime @db.Timestamp()
 
   fk_tray_uid Tray @relation(fields: [tray_uid], references: [tray_uid], onDelete: Restrict, onUpdate: Restrict)
 

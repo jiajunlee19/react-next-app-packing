@@ -44,7 +44,7 @@ export async function readShipdocTotalPage(itemsPerPage: number, query?: string)
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE (shipdoc_uid like @query OR shipdoc_number like @query OR shipdoc_contact like @query);
                             `;
@@ -106,7 +106,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE (shipdoc_uid like @query OR shipdoc_number like @query OR shipdoc_contact like @query)
                                     ORDER BY shipdoc_number asc
@@ -152,7 +152,7 @@ export async function readShipdoc() {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc";
                             `;
             parsedForm = readShipdocSchema.array().safeParse(result.recordset);
@@ -195,7 +195,7 @@ export async function readShipdocUid(shipdoc_number: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('shipdoc_number', sql.VarChar, shipdoc_number)
-                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE shipdoc_number = @shipdoc_number;
                             `;
@@ -223,8 +223,8 @@ export async function createShipdoc(prevState: State, formData: FormData): State
         shipdoc_uid: uuidv5(formData.get('shipdoc_number') as string, UUID5_SECRET),
         shipdoc_number: formData.get('shipdoc_number'),
         shipdoc_contact: formData.get('shipdoc_contact'),
-        shipdoc_createdAt: now,
-        shipdoc_updatedAt: now,
+        shipdoc_created_dt: now,
+        shipdoc_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -247,11 +247,11 @@ export async function createShipdoc(prevState: State, formData: FormData): State
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('shipdoc_number', sql.VarChar, parsedForm.data.shipdoc_number)
                             .input('shipdoc_contact', sql.Int, parsedForm.data.shipdoc_contact)
-                            .input('shipdoc_createdAt', sql.DateTime, parsedForm.data.shipdoc_createdAt)
-                            .input('shipdoc_updatedAt', sql.DateTime, parsedForm.data.shipdoc_updatedAt)
+                            .input('shipdoc_created_dt', sql.DateTime, parsedForm.data.shipdoc_created_dt)
+                            .input('shipdoc_updated_dt', sql.DateTime, parsedForm.data.shipdoc_updated_dt)
                             .query`INSERT INTO "packing"."shipdoc"
-                                    (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt)
-                                    VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_createdAt, @shipdoc_updatedAt);
+                                    (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt)
+                                    VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_created_dt, @shipdoc_updated_dt);
                             `;
         }
     } 
@@ -276,7 +276,7 @@ export async function updateShipdoc(prevState: State, formData: FormData): State
     const parsedForm = updateShipdocSchema.safeParse({
         shipdoc_uid: formData.get('shipdoc_uid'),
         shipdoc_contact: formData.get('shipdoc_contact'),
-        shipdoc_updatedAt: now,
+        shipdoc_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -301,9 +301,9 @@ export async function updateShipdoc(prevState: State, formData: FormData): State
             const result = await pool.request()
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('shipdoc_contact', sql.Int, parsedForm.data.shipdoc_contact)
-                            .input('shipdoc_updatedAt', sql.DateTime, parsedForm.data.shipdoc_updatedAt)
+                            .input('shipdoc_updated_dt', sql.DateTime, parsedForm.data.shipdoc_updated_dt)
                             .query`UPDATE "packing"."shipdoc"
-                                    SET shipdoc_contact = @shipdoc_contact, shipdoc_updatedAt = @shipdoc_updatedAt
+                                    SET shipdoc_contact = @shipdoc_contact, shipdoc_updated_dt = @shipdoc_updated_dt
                                     WHERE shipdoc_uid = @shipdoc_uid;
                             `;
         }
@@ -378,7 +378,7 @@ export async function readShipdocById(shipdoc_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_createdAt, shipdoc_updatedAt 
+                            .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE shipdoc_uid = @shipdoc_uid;
                             `;

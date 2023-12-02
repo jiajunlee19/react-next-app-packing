@@ -46,19 +46,19 @@ export const columns = [
             type: "number",
         },
     }),
-    columnHelper.accessor("tray_createdAt", {
-        id: "tray_createdAt",
-        header: "tray_createdAt",
-        footer: "tray_createdAt",
+    columnHelper.accessor("tray_created_dt", {
+        id: "tray_created_dt",
+        header: "tray_created_dt",
+        footer: "tray_created_dt",
         meta: {
             type: "date",
         },
         cell: ({ cell }) => cell.getValue()?.toLocaleString(),
     }),
-    columnHelper.accessor("tray_updatedAt", {
-        id: "tray_updatedAt",
-        header: "tray_updatedAt",
-        footer: "tray_updatedAt",
+    columnHelper.accessor("tray_updated_dt", {
+        id: "tray_updated_dt",
+        header: "tray_updated_dt",
+        footer: "tray_updated_dt",
         meta: {
             type: "date",
         },
