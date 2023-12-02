@@ -5,6 +5,7 @@ import SubmitButton from "@/app/_components/basic/button_submit";
 import { type TInputType, type TRowData, type State, type StatePromise, type TFormMode } from "@/app/_libs/types";
 import { toast } from "react-hot-toast";
 import { getString } from "@/app/_libs/toString_handler";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
 type FormWithoutStateProps = {
@@ -130,6 +131,7 @@ export default function FormWithoutState( {formTitle, inputType, rowData, select
             }
             else if (result?.message) {
                 toast.success(result.message);
+                redirect(redirectLink);
             }
             formRef.current?.reset();
         }
