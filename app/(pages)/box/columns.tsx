@@ -1,7 +1,8 @@
 "use client"
 
-import { deleteBox } from "@/app/_actions/box";
+import { deleteBox, shipBox } from "@/app/_actions/box";
 import DeleteButton from "@/app/_components/basic/button_delete";
+import ShipButton from "@/app/_components/basic/button_ship";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadBoxSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -11,21 +12,25 @@ const hrefUpdate = "/box/[box_uid]/tray";
 
 const deleteAction = deleteBox;
 
+const shipAction = shipBox;
+
 const columnHelper = createColumnHelper<TReadBoxSchema>();
 
 export const columns = [
+    columnHelper.display({
+        id: "ship",
+        header: "ship",
+        footer: "ship",
+        cell: ({ row }) => (
+            <div className="flex gap-1 justify-center align-middle">
+                {!!shipAction && <ShipButton shipId={row.original.box_uid as string} shipAction={shipAction} />}
+            </div>
+        ),
+    }),
     columnHelper.accessor("box_uid", {
         id: "box_uid",
         header: "box_uid",
         footer: "box_uid",
-        meta: {
-            type: "text",
-        },
-    }),
-    columnHelper.accessor("box_status", {
-        id: "box_status",
-        header: "box_status",
-        footer: "box_status",
         meta: {
             type: "text",
         },

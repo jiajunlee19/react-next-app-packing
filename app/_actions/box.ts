@@ -3,7 +3,7 @@
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema } from "@/app/_libs/zod_server";
+import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema } from "@/app/_libs/zod_server";
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -353,6 +353,57 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
 };
 
 
+export async function shipBox(box_uid: string): StatePromise {
+
+    const now = new Date();
+
+    const parsedForm = shipBoxSchema.safeParse({
+        box_uid: box_uid,
+        box_status: 'shipped',
+        box_updatedAt: now,
+    });
+
+    if (!parsedForm.success) {
+        return { 
+            error: parsedForm.error.flatten().fieldErrors,
+            message: "Invalid input provided, failed to ship box!"
+        };
+    };
+
+    try {
+
+        if (parsedEnv.DB_TYPE === "PRISMA") {
+            const result = await prisma.box.update({
+                where: {
+                    box_uid: parsedForm.data.box_uid,
+                },
+                data: parsedForm.data
+            });
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
+                            .input('box_status', sql.VarChar, parsedForm.data.box_status)
+                            .input('box_updatedAt', sql.DateTime, parsedForm.data.box_updatedAt)
+                            .query`UPDATE "packing"."box" 
+                                    SET box_status = @box_status, box_updatedAt = @box_updatedAt
+                                    WHERE box_uid = @box_uid;
+                            `;
+        }
+    } 
+    catch (err) {
+        return { 
+            error: {error: [getErrorMessage(err)]},
+            message: getErrorMessage(err)
+        }
+    }
+
+    revalidatePath('/box');
+    return { message: `Successfully shipped box ${parsedForm.data.box_uid}` }
+};
+
+
 export async function deleteBox(box_uid: string): StatePromise {
 
     const parsedForm = deleteBoxSchema.safeParse({
@@ -394,6 +445,7 @@ export async function deleteBox(box_uid: string): StatePromise {
     revalidatePath('/box');
     return { message: `Successfully deleted box ${parsedForm.data.box_uid}` }
 };
+
 
 export async function readBoxById(box_uid: string) {
     noStore();
