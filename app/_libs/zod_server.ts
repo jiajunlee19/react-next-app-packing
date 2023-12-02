@@ -95,22 +95,6 @@ export const shipBoxSchema = createBoxSchema.pick({
     box_updated_dt: true,
 });
 
-export type TShippedBoxHistorySchema = z.infer<typeof shippedBoxHistorySchema>;
-
-export const shippedBoxHistorySchema = createBoxSchema.pick({
-    box_uid: true,
-    box_status: true,
-    box_updated_dt: true,
-}).extend({
-    shipdoc_number: z.string().toUpperCase().min(1),
-    shipdoc_contact: z.string().toUpperCase().min(1),
-    tray_uid: z.string().toLowerCase().min(1).uuid(),
-    lot_id: z.string().toUpperCase().min(1),
-    lot_qty: z.coerce.number().int().min(1),
-});
-
-
-
 export const createTraySchema = z.object({
     tray_uid: z.string().toLowerCase().min(1).uuid(),
     box_uid: z.string().toLowerCase().min(1).uuid(),
@@ -185,3 +169,22 @@ export const updateBoxTypeSchema = createBoxTypeSchema.pick({
 export const deleteBoxTypeSchema = createBoxTypeSchema.pick({
     box_type_uid: true,
 });
+
+
+
+export type TShippedBoxHistorySchema = z.infer<typeof shippedBoxHistorySchema>;
+
+export const shippedBoxHistorySchema = createBoxSchema.pick({
+    box_uid: true,
+    box_status: true,
+    box_created_dt: true,
+    box_updated_dt: true,
+}).merge(createShipdocSchema.pick({
+    shipdoc_number: true,
+    shipdoc_contact: true,
+})).merge(createTraySchema.pick({
+    tray_uid: true,
+})).merge(createLotSchema.pick({
+    lot_id: true,
+    lot_qty: true,
+})).partial();

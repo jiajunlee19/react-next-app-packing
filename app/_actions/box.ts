@@ -3,7 +3,7 @@
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema, checkBoxShippableSchema } from "@/app/_libs/zod_server";
+import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema, checkBoxShippableSchema, shippedBoxHistorySchema } from "@/app/_libs/zod_server";
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -298,30 +298,106 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
-            const result = await prisma.$queryRaw`
-                                WITH gt AS (
-                                    SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
-                                    FROM "packing"."tray"
-                                    GROUP BY box_uid
-                                )
-                                SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
-                                bt.box_part_number, bt.box_max_tray,
-                                s.shipdoc_number, s.shipdoc_contact,
-                                COALESCE(gt.box_current_tray, 0)::INT box_current_tray
-                                FROM "packing"."box" b
-                                INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
-                                LEFT JOIN gt ON b.box_uid = gt.box_uid
-                                WHERE b.box_status = 'shipped'
-                                AND (
-                                    b.box_uid||'' like ${QUERY}
-                                    OR bt.box_part_number like ${QUERY} OR s.shipdoc_number like ${QUERY} OR s.shipdoc_contact like ${QUERY}
-                                )
-                                ORDER BY b.box_updated_dt desc
-                                OFFSET ${OFFSET} ROWS
-                                FETCH NEXT ${itemsPerPage} ROWS ONLY;
-                            `;
-            parsedForm = readBoxSchema.array().safeParse(result);
+            const result = await prisma.lot.findMany({
+                select: {
+                    lot_id: true,
+                    lot_qty: true,
+                    fk_tray_uid: {
+                        select: {
+                            tray_uid: true,
+                            fk_box_uid: {
+                                select: {
+                                    box_uid: true,
+                                    box_status: true,
+                                    box_created_dt: true,
+                                    box_updated_dt: true,
+                                    fk_shipdoc_uid: {
+                                        select: {
+                                            shipdoc_number: true,
+                                            shipdoc_contact: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: [
+                    {
+                        fk_tray_uid: {
+                            fk_box_uid: {
+                                box_updated_dt: 'desc',
+                            },
+                        },
+                    },
+                    {
+                        fk_tray_uid: {
+                            fk_box_uid: {
+                                box_uid: 'asc',
+                            },
+                        },
+                    },
+                    {
+                        fk_tray_uid: {
+                            tray_uid: 'asc',
+                        },
+                    },
+                    {
+                        lot_id: 'asc',
+                    },
+                ],
+                where: {
+                    ...(query &&
+                        {
+                            OR: [
+                                ...(['lot_id'].map((e) => {
+                                    return {
+                                        [e]: {
+                                            search: `${query}:*`,
+                                        },
+                                    };
+                                })),
+                                ...(['tray_uid'].map((e) => {
+                                    return {
+                                        fk_tray_uid: {
+                                            [e]: {
+                                                search: `${query}:*`,
+                                            },
+                                        },
+                                    };
+                                })),
+                                ...(['box_uid'].map((e) => {
+                                    return {
+                                        fk_tray_uid: {
+                                            fk_box_uid: {
+                                                [e]: {
+                                                    search: `${query}:*`,
+                                                },
+                                            },
+                                        },
+                                    };
+                                })),
+                                ...(['shipdoc_number', 'shipdoc_contact'].map((e) => {
+                                    return {
+                                        fk_tray_uid: {
+                                            fk_box_uid: {
+                                                fk_shipdoc_uid: {
+                                                    [e]: {
+                                                        search: `${query}:*`,
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    };
+                                })),
+                            ],
+                        }),
+                },
+            });
+            const flattenResult = result.map((row) => {
+                return flattenNestedObject(row)
+            });
+            parsedForm = shippedBoxHistorySchema.array().safeParse(flattenResult);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -330,28 +406,25 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                             .input('limit', sql.Int, itemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`
-                                    WITH gt AS (
-                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
-                                        FROM "packing"."tray"
-                                        GROUP BY box_uid
-                                    )
                                     SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
-                                    bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact,
-                                    COALERSE(gt.box_current_tray, 0)::INT box_current_tray
-                                    FROM "packing"."box" b
-                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    t.tray_uid,
+                                    l.lot_id, l.lot_qty
+                                    FROM "packing"."lot" l
+                                    INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                    INNER JOIN "packing"."box" b ON t.tray_uid = b.tray_uid
                                     INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
-                                    LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     WHERE b.box_status = 'shipped'
                                     AND (b.box_uid like @query
-                                        OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
+                                        OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
+                                        OR t.tray_uid like @query
+                                        OR l.lot_id like @query
                                     )
-                                    ORDER BY b.box_updated_dt desc
+                                    ORDER BY b.box_updated_dt desc, b.box_uid, t.tray_uid, l.lot_id
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;
                             `;
-            parsedForm = readBoxSchema.array().safeParse(result.recordset);
+            parsedForm = shippedBoxHistorySchema.array().safeParse(result.recordset);
         }
 
         if (!parsedForm.success) {
