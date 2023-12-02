@@ -95,6 +95,8 @@ export const shipBoxSchema = createBoxSchema.pick({
     box_updated_dt: true,
 });
 
+export type TShippedBoxHistorySchema = z.infer<typeof shippedBoxHistorySchema>;
+
 export const shippedBoxHistorySchema = createBoxSchema.pick({
     box_uid: true,
     box_status: true,
