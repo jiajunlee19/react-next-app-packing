@@ -365,7 +365,6 @@ export async function readBoxById(box_uid: string) {
                                 LEFT JOIN gt ON b.box_uid = gt.box_uid
                                 WHERE b.box_uid = UUID(${box_uid});
                             `;
-            console.log(result)
             parsedForm = readBoxSchema.safeParse(result[0]);
         }
         else {
@@ -468,22 +467,26 @@ export async function checkBoxShippableById(box_uid: string) {
         throw new Error(getErrorMessage(err))
     }
 
-    if (parsedForm.data.box_current_tray === 0 || parsedForm.data.box_current_drive === 0) {
-        return false
+    if (parsedForm.data.box_current_tray === 0) {
+        return "Box current tray count is zero."
     }
 
-    return true
+    if (parsedForm.data.box_current_drive === 0) {
+        return "Box current drive count is zero."
+    }
+
+    return "Box is shippable."
 };
 
 
 export async function shipBox(box_uid: string): StatePromise {
 
-    const canShip = await checkBoxShippableById(box_uid);
+    const shipStatus = await checkBoxShippableById(box_uid);
 
-    if (!canShip) {
+    if (shipStatus !== "Box is shippable.") {
         return { 
-            error: {error: ["Box current tray count or current drive qty is zero. Box is not shippable !"]},
-            message: "Box current tray count or current drive qty is zero. Box is not shippable !"
+            error: {error: [shipStatus + " Box is not shippable !"]},
+            message: shipStatus + " Box is not shippable !"
         }
     } 
 
