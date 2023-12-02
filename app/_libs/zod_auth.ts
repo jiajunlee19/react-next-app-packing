@@ -16,7 +16,7 @@ export const roleWithoutBossSchema = z.enum(["user", "admin"]);
 export type TSignUpSchema = z.infer<typeof signUpSchema>;
 
 export const signUpSchema = z.object({
-    user_uid: z.string().toUpperCase().min(1).uuid(),
+    user_uid: z.string().toLowerCase().min(1).uuid(),
     email: emailSchema,
     password: passwordSchema,
     role: roleSchema,
