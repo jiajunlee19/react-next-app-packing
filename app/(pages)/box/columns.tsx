@@ -75,10 +75,10 @@ export const columns = [
             type: "text",
         },
     }),
-    columnHelper.accessor("box_updatedAt", {
-        id: "box_updatedAt",
-        header: "box_updatedAt",
-        footer: "box_updatedAt",
+    columnHelper.accessor("box_updated_dt", {
+        id: "box_updated_dt",
+        header: "box_updated_dt",
+        footer: "box_updated_dt",
         meta: {
             type: "date",
         },
