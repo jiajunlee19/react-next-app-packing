@@ -1,7 +1,8 @@
 "use client"
 
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { deleteLot } from "@/app/_actions/lot";
-import DeleteButton from "@/app/_components/basic/button_delete";
+import TableActionButton from "@/app/_components/basic/button_table_action";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadLotSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -10,6 +11,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 const hrefUpdate = "/box/[box_uid]/tray/[tray_uid]/lot/[lot_uid]/update";
 
 const deleteAction = deleteLot;
+
+const confirmMsg = 'Are you sure to delete this item?';
 
 const columnHelper = createColumnHelper<TReadLotSchema>();
 
@@ -63,7 +66,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[box_uid]", row.original.box_uid as string).replace("[tray_uid]", row.original.tray_uid as string).replace("[lot_uid]", row.original.lot_uid as string)} />}
-                {!!deleteAction && <DeleteButton deleteId={row.original.lot_uid as string} deleteAction={deleteAction} />}
+                {!!deleteAction && <TableActionButton id={row.original.lot_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

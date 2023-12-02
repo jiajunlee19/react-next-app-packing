@@ -1,7 +1,8 @@
 "use client"
 
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { deleteBoxType } from "@/app/_actions/box_type";
-import DeleteButton from "@/app/_components/basic/button_delete";
+import TableActionButton from "@/app/_components/basic/button_table_action";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadBoxTypeSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -10,6 +11,8 @@ import { createColumnHelper } from "@tanstack/react-table";
 const hrefUpdate = "/protected/box_type/[box_type_uid]/update";
 
 const deleteAction = deleteBoxType;
+
+const confirmMsg = 'Are you sure to delete this item?';
 
 const columnHelper = createColumnHelper<TReadBoxTypeSchema>();
 
@@ -63,7 +66,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[box_type_uid]", row.original.box_type_uid as string)} />}
-                {!!deleteAction && <DeleteButton deleteId={row.original.box_type_uid as string} deleteAction={deleteAction} />}
+                {!!deleteAction && <TableActionButton id={row.original.box_type_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

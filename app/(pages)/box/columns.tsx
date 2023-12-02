@@ -1,7 +1,8 @@
 "use client"
 
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { deleteBox, shipBox } from "@/app/_actions/box";
-import DeleteButton from "@/app/_components/basic/button_delete";
+import TableActionButton from "@/app/_components/basic/button_table_action";
 import ShipButton from "@/app/_components/basic/button_ship";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadBoxSchema } from "@/app/_libs/zod_server";
@@ -13,6 +14,8 @@ const hrefUpdate = "/box/[box_uid]/tray";
 const deleteAction = deleteBox;
 
 const shipAction = shipBox;
+
+const confirmMsg = 'Are you sure to delete this item?';
 
 const columnHelper = createColumnHelper<TReadBoxSchema>();
 
@@ -91,7 +94,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[box_uid]", row.original.box_uid as string)} />}
-                {!!deleteAction && <DeleteButton deleteId={row.original.box_uid as string} deleteAction={deleteAction} />}
+                {!!deleteAction && <TableActionButton id={row.original.box_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

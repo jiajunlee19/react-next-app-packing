@@ -1,7 +1,8 @@
 "use client"
 
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { shipBox } from "@/app/_actions/box";
-import ShipButton from "@/app/_components/basic/button_ship";
+import TableActionButton from "@/app/_components/basic/button_table_action";
 import { type TRowData } from "@/app/_libs/types";
 import { type TShippedBoxHistorySchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -10,6 +11,8 @@ const shipAction = shipBox;
 
 const columnHelper = createColumnHelper<TRowData | TShippedBoxHistorySchema>();
 
+const confirmMsg = 'Are you sure to ship this item?';
+
 export const columns = [
     columnHelper.display({
         id: "undo",
@@ -17,7 +20,7 @@ export const columns = [
         footer: "undo",
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
-                {!!shipAction && <ShipButton shipId={row.original.box_uid as string} shipAction={shipAction} />}
+                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),
