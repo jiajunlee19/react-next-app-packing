@@ -1,14 +1,29 @@
 "use client"
 
+import { ArrowLeftOnRectangleIcon } from "@heroicons/react/24/outline";
+import { undoShipBox } from "@/app/_actions/box";
+import TableActionButton from "@/app/_components/basic/button_table_action";
 import { type TRowData } from "@/app/_libs/types";
 import { type TShippedBoxHistorySchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
+
+const undoAction = undoShipBox;
 
 const columnHelper = createColumnHelper<TRowData | TShippedBoxHistorySchema>();
 
 const confirmMsg = 'Are you sure to undo ship this item?';
 
 export const columns = [
+     columnHelper.display({
+        id: "undo",
+        header: "undo",
+        footer: "undo",
+        cell: ({ row }) => (
+            <div className="flex gap-1 justify-center align-middle">
+                {!!undoAction && <TableActionButton id={row.original.box_uid as string} action={undoAction} icon={<ArrowLeftOnRectangleIcon className="h-5" />} confirmMsg={confirmMsg} />}
+            </div>
+        ),
+    }),
     columnHelper.accessor("box_uid", {
         id: "box_uid",
         header: "box_uid",

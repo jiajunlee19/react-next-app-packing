@@ -197,47 +197,70 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
-            const result = await prisma.box.findMany({
-                include: {
-                    fk_box_type_uid: {
+            const result = await prisma.lot.findMany({
+                select: {
+                    lot_id: true,
+                    lot_qty: true,
+                    fk_tray_uid: {
                         select: {
-                            box_part_number: true,
-                            box_max_tray: true,
-                        },
-                    },
-                    fk_shipdoc_uid: {
-                        select: {
-                            shipdoc_number: true,
-                            shipdoc_contact: true,
+                            tray_uid: true,
+                            fk_box_uid: {
+                                select: {
+                                    box_uid: true,
+                                    box_status: true,
+                                    box_created_dt: true,
+                                    box_updated_dt: true,
+                                    fk_shipdoc_uid: {
+                                        select: {
+                                            shipdoc_number: true,
+                                            shipdoc_contact: true,
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
                 where: {
-                    box_status: 'shipped',
                     ...(query &&
                         {
                             OR: [
-                                ...(['box_uid', 'box_type_uid', 'shipdoc_uid'].map((e) => {
+                                ...(['lot_id'].map((e) => {
                                     return {
                                         [e]: {
                                             search: `${query}:*`,
                                         },
                                     };
                                 })),
-                                ...(['box_part_number'].map((e) => {
+                                ...(['tray_uid'].map((e) => {
                                     return {
-                                        fk_box_type_uid: {
+                                        fk_tray_uid: {
                                             [e]: {
                                                 search: `${query}:*`,
                                             },
                                         },
                                     };
                                 })),
+                                ...(['box_uid'].map((e) => {
+                                    return {
+                                        fk_tray_uid: {
+                                            fk_box_uid: {
+                                                [e]: {
+                                                    search: `${query}:*`,
+                                                },
+                                            },
+                                        },
+                                    };
+                                })),
                                 ...(['shipdoc_number', 'shipdoc_contact'].map((e) => {
                                     return {
-                                        fk_shipdoc_uid: {
-                                            [e]: {
-                                                search: `${query}:*`,
+                                        fk_tray_uid: {
+                                            fk_box_uid: {
+                                                fk_shipdoc_uid: {
+                                                    [e]: {
+                                                        search: `${query}:*`,
+                                                    },
+                                                },
                                             },
                                         },
                                     };
@@ -256,16 +279,20 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
             const result = await pool.request()
                             .input('query', sql.VarChar, QUERY)
                             .query`
-                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
-                                    bt.box_part_number, bt.box_max_tray,
-                                    s.shipdoc_number, s.shipdoc_contact,
-                                    FROM "packing"."box" b
-                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
-                                    WHERE b.box_status = 'shipped'
-                                    AND (b.box_uid like @query
-                                        OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
-                                    );
+                                SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
+                                s.shipdoc_number, s.shipdoc_contact,
+                                t.tray_uid,
+                                l.lot_id, l.lot_qty
+                                FROM "packing"."lot" l
+                                INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                INNER JOIN "packing"."box" b ON t.tray_uid = b.tray_uid
+                                INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                WHERE b.box_status = 'shipped'
+                                AND (b.box_uid like @query
+                                    OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
+                                    OR t.tray_uid like @query
+                                    OR l.lot_id like @query
+                                )
                             `;
             parsedForm = readBoxSchema.array().safeParse(result.recordset);
         }
@@ -279,6 +306,7 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
     revalidatePath('/history');
+    revalidatePath('/protected/history');
     return totalPage
 };
 
@@ -436,6 +464,7 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
     }
 
     revalidatePath('/history');
+    revalidatePath('/protected/history');
     return parsedForm.data
 };
 
@@ -786,4 +815,56 @@ export async function shipBox(box_uid: string): StatePromise {
 
     revalidatePath('/box');
     return { message: `Successfully shipped box ${parsedForm.data.box_uid}` }
+};
+
+
+export async function undoShipBox(box_uid: string): StatePromise {
+
+    const now = new Date();
+
+    const parsedForm = shipBoxSchema.safeParse({
+        box_uid: box_uid,
+        box_status: 'active',
+        box_updated_dt: now,
+    });
+
+    if (!parsedForm.success) {
+        return {
+            error: parsedForm.error.flatten().fieldErrors,
+            message: "Invalid input provided, failed to undo ship box!"
+        };
+    };
+
+    try {
+
+        if (parsedEnv.DB_TYPE === "PRISMA") {
+            const result = await prisma.box.update({
+                where: {
+                    box_uid: parsedForm.data.box_uid,
+                },
+                data: parsedForm.data
+            });
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
+                            .input('box_status', sql.VarChar, parsedForm.data.box_status)
+                            .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
+                            .query`UPDATE "packing"."box" 
+                                    SET box_status = @box_status, box_updated_dt = @box_updated_dt
+                                    WHERE box_uid = @box_uid;
+                            `;
+        }
+    } 
+    catch (err) {
+        return { 
+            error: {error: [getErrorMessage(err)]},
+            message: getErrorMessage(err)
+        }
+    }
+
+    revalidatePath('/history');
+    revalidatePath('/protected/history');
+    return { message: `Successfully undo ship box ${parsedForm.data.box_uid}` }
 };

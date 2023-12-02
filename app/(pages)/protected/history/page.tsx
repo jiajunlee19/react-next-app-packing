@@ -2,7 +2,7 @@ import { readShippedBoxTotalPage, readShippedBoxByPage } from "@/app/_actions/bo
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { columns } from "@/app/(pages)/history/columns";
+import { columns } from "@/app/(pages)/protected/history/columns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
@@ -19,8 +19,8 @@ export default async function ShippedBox({ searchParams }: { searchParams?: { it
 
     const session = await getServerSession(options);
 
-    if (session && (session.user.role == 'boss' || session.user.role == 'admin')) {
-        redirect("/protected/history");
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/history");
     }
 
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
