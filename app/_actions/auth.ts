@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { type TEmailSchema, type TPasswordSchema, emailSchema, signInSchema, signUpSchema, readUserSchema, readUserWithoutPassSchema, updateUserSchema, deleteUserSchema, updateRoleSchema } from "@/app/_libs/zod_auth";
+import { type TEmailSchema, type TPasswordSchema, emailSchema, signInSchema, signUpSchema, readUserSchema, readUserWithoutPassSchema, updateUserSchema, deleteUserSchema, updateRoleSchema, updateRoleAdminSchema, readUserWithoutPassAdminSchema } from "@/app/_libs/zod_auth";
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
 import { signJwtToken } from '@/app/_libs/jwt';
@@ -51,6 +51,56 @@ export async function readUserByEmail(email: TEmailSchema) {
                                     WHERE email = @email;
                             `;
             parsedResult = readUserWithoutPassSchema.safeParse(result.recordset[0]);
+        }
+    
+        if (!parsedResult.success) {
+            throw new Error(parsedResult.error.message)
+        };
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    return parsedResult.data
+};
+
+export async function readUserByEmailAdmin(email: TEmailSchema) {
+    noStore();
+    const parsedForm = emailSchema.safeParse(email);
+
+    if (!parsedForm.success) {
+        throw new Error(parsedForm.error.message)
+    };
+
+    let parsedResult;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.user.findFirst({
+                where: {
+                    email: parsedForm.data,
+                    role: {
+                        not: 'boss',
+                    },
+                },
+                select: {
+                    user_uid: true,
+                    email: true,
+                    role: true,
+                },
+            })
+            const flattenResult = flattenNestedObject(result);
+            parsedResult = readUserWithoutPassAdminSchema.safeParse(flattenResult);
+        }
+
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('email', sql.VarChar, parsedForm.data)
+                            .query`SELECT user_uid, email, role
+                                    FROM "packing"."user"
+                                    WHERE email = @email and role != 'boss';
+                            `;
+            parsedResult = readUserWithoutPassAdminSchema.safeParse(result.recordset[0]);
         }
     
         if (!parsedResult.success) {
@@ -581,6 +631,55 @@ export async function updateRole(formData: FormData): StatePromise {
     const now = new Date();
 
     const parsedForm = updateRoleSchema.safeParse({
+        user_uid: formData.get("user_uid"),
+        role: formData.get("role"),
+        user_updatedAt: now,
+    });
+
+    if (!parsedForm.success) {
+        return { 
+            error: parsedForm.error.flatten().fieldErrors,
+            message: "Invalid input provided, failed to update role!"
+        };  
+    };
+
+    try {
+        
+        if (parsedEnv.DB_TYPE === "PRISMA") {
+            const result = await prisma.user.update({
+                where: {
+                    user_uid: parsedForm.data.user_uid,
+                },
+                data: parsedForm.data,
+            });
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
+                            .input('role', sql.VarChar, parsedForm.data.role)
+                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .query`UPDATE "packing"."user" 
+                                    SET role = @role, user_updatedAt = @user_updatedAt
+                                    WHERE user_uid = @user_uid;
+                            `;
+        }
+    } 
+    catch (err) {
+        return { 
+            error: {error: [getErrorMessage(err)]},
+            message: "Invalid user provided, failed to update role!"
+        };
+    }
+
+    return { message: `Successfully updated role for user ${parsedForm.data.user_uid}` }
+};
+
+export async function updateRoleAdmin(formData: FormData): StatePromise {
+
+    const now = new Date();
+
+    const parsedForm = updateRoleAdminSchema.safeParse({
         user_uid: formData.get("user_uid"),
         role: formData.get("role"),
         user_updatedAt: now,

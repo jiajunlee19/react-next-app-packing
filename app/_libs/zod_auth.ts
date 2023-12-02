@@ -6,6 +6,12 @@ export const emailSchema = z.string().min(1).email();
 export type TPasswordSchema = z.infer<typeof passwordSchema>;
 export const passwordSchema = z.string().min(8, {message: "Password must have minimum length of 8 !"});
 
+export type TRoleSchema = z.infer<typeof roleSchema>;
+export const roleSchema = z.enum(["user", "admin", "boss"]);
+
+export type TRoleWithoutBossSchema = z.infer<typeof roleWithoutBossSchema>;
+export const roleWithoutBossSchema = z.enum(["user", "admin"]);
+
 
 export type TSignUpSchema = z.infer<typeof signUpSchema>;
 
@@ -13,7 +19,7 @@ export const signUpSchema = z.object({
     user_uid: z.string().min(1).uuid(),
     email: emailSchema,
     password: passwordSchema,
-    role: z.enum(["user", "admin", "boss"]),
+    role: roleSchema,
     user_createdAt: z.coerce.date(),
     user_updatedAt: z.coerce.date(),
 });
@@ -44,6 +50,15 @@ export const readUserWithoutPassSchema = readUserSchema.omit({
 });
 
 
+export type TReadUserWithoutPassAdminSchema = z.infer<typeof readUserWithoutPassAdminSchema>;
+
+export const readUserWithoutPassAdminSchema = readUserSchema.omit({
+    password: true,
+    role: true,
+}).extend({
+    role: roleWithoutBossSchema,
+});
+
 
 export type TUpdateUserSchema = z.infer<typeof updateUserSchema>;
 
@@ -69,4 +84,13 @@ export const updateRoleSchema = signUpSchema.pick({
     user_uid: true,
     role: true,
     user_updatedAt: true,
+});
+
+export type TUpdateRoleAdminSchema = z.infer<typeof updateRoleAdminSchema>;
+
+export const updateRoleAdminSchema = signUpSchema.pick({
+    user_uid: true,
+    user_updatedAt: true,
+}).extend({
+    role: roleWithoutBossSchema,
 });

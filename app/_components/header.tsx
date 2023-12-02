@@ -38,6 +38,7 @@ export default function Header() {
         { name: "Manage Box Type", href: "/protected/box_type", icon: "" },
         { name: "Manage Tray Type", href: "/protected/tray_type", icon: "" },
         { name: "Manage Shipdoc", href: "/protected/shipdoc", icon: "" },
+        { name: "Update User Role", href: "/protected/auth/updateRoleByEmail", icon: "" },
     ];
 
     const actionNavLinksRestricted = [
