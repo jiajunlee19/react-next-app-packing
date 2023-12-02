@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export type TEmailSchema = z.infer<typeof emailSchema>;
-export const emailSchema = z.string().min(1).email();
+export const emailSchema = z.string().toLowerCase().min(1).email();
 
 export type TPasswordSchema = z.infer<typeof passwordSchema>;
 export const passwordSchema = z.string().min(8, {message: "Password must have minimum length of 8 !"});
@@ -16,7 +16,7 @@ export const roleWithoutBossSchema = z.enum(["user", "admin"]);
 export type TSignUpSchema = z.infer<typeof signUpSchema>;
 
 export const signUpSchema = z.object({
-    user_uid: z.string().min(1).uuid(),
+    user_uid: z.string().toUpperCase().min(1).uuid(),
     email: emailSchema,
     password: passwordSchema,
     role: roleSchema,

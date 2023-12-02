@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const createShipdocSchema = z.object({
-    shipdoc_uid: z.string().min(1).uuid(),
-    shipdoc_number: z.string().min(1),
-    shipdoc_contact: z.string().min(1),
+    shipdoc_uid: z.string().toUpperCase().min(1).uuid(),
+    shipdoc_number: z.string().toUpperCase().min(1),
+    shipdoc_contact: z.string().toUpperCase().min(1),
     shipdoc_created_dt: z.coerce.date(),
     shipdoc_updated_dt: z.coerce.date(),
 });
@@ -25,9 +25,9 @@ export const deleteShipdocSchema = createShipdocSchema.pick({
 
 
 export const createLotSchema = z.object({
-    lot_uid: z.string().min(1).uuid(),
-    tray_uid: z.string().min(1).uuid(),
-    lot_id: z.string().length(10, {message: "Please enter a valid lot!"}),
+    lot_uid: z.string().toUpperCase().min(1).uuid(),
+    tray_uid: z.string().toUpperCase().min(1).uuid(),
+    lot_id: z.string().toUpperCase().length(10, {message: "Please enter a valid lot!"}),
     lot_qty: z.coerce.number().int().min(1),
     lot_created_dt: z.coerce.date(),
     lot_updated_dt: z.coerce.date(),
@@ -36,7 +36,7 @@ export const createLotSchema = z.object({
 export type TReadLotSchema = z.infer<typeof readLotSchema>;
 
 export const readLotSchema = createLotSchema.extend({
-    box_uid: z.string().min(1).uuid(),
+    box_uid: z.string().toUpperCase().min(1).uuid(),
 }).partial();
 
 export const updateLotSchema = createLotSchema.pick({
@@ -52,9 +52,9 @@ export const deleteLotSchema = createLotSchema.pick({
 
 
 export const createBoxSchema = z.object({
-    box_uid: z.string().min(1).uuid(),
-    box_type_uid: z.string().min(1).uuid(),
-    shipdoc_uid: z.string().min(1).uuid(),
+    box_uid: z.string().toUpperCase().min(1).uuid(),
+    box_type_uid: z.string().toUpperCase().min(1).uuid(),
+    shipdoc_uid: z.string().toUpperCase().min(1).uuid(),
     box_status: z.enum(['active', 'shipped']),
     box_created_dt: z.coerce.date(),
     box_updated_dt: z.coerce.date(),
@@ -63,11 +63,11 @@ export const createBoxSchema = z.object({
 export type TReadBoxSchema = z.infer<typeof readBoxSchema>;
 
 export const readBoxSchema = createBoxSchema.extend({
-    box_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    box_part_number: z.string().toUpperCase().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
     box_max_tray: z.coerce.number().int().min(1),
     box_current_tray: z.coerce.number().int().min(0),
-    shipdoc_number: z.string().min(1),
-    shipdoc_contact: z.string().min(1),
+    shipdoc_number: z.string().toUpperCase().min(1),
+    shipdoc_contact: z.string().toUpperCase().min(1),
 }).partial();
 
 export const updateBoxSchema = createBoxSchema.pick({
@@ -100,19 +100,19 @@ export const shippedBoxHistorySchema = createBoxSchema.pick({
     box_status: true,
     box_updated_dt: true,
 }).extend({
-    shipdoc_number: z.string().min(1),
-    shipdoc_contact: z.string().min(1),
-    tray_uid: z.string().min(1).uuid(),
-    lot_id: z.string().min(1),
+    shipdoc_number: z.string().toUpperCase().min(1),
+    shipdoc_contact: z.string().toUpperCase().min(1),
+    tray_uid: z.string().toUpperCase().min(1).uuid(),
+    lot_id: z.string().toUpperCase().min(1),
     lot_qty: z.coerce.number().int().min(1),
 });
 
 
 
 export const createTraySchema = z.object({
-    tray_uid: z.string().min(1).uuid(),
-    box_uid: z.string().min(1).uuid(),
-    tray_type_uid: z.string().min(1).uuid(),
+    tray_uid: z.string().toUpperCase().min(1).uuid(),
+    box_uid: z.string().toUpperCase().min(1).uuid(),
+    tray_type_uid: z.string().toUpperCase().min(1).uuid(),
     tray_created_dt: z.coerce.date(),
     tray_updated_dt: z.coerce.date(),
 });
@@ -120,7 +120,7 @@ export const createTraySchema = z.object({
 export type TReadTraySchema = z.infer<typeof readTraySchema>;
 
 export const readTraySchema = createTraySchema.extend({
-    tray_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    tray_part_number: z.string().toUpperCase().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
     tray_max_drive: z.coerce.number().int().min(1),
     tray_current_drive: z.coerce.number().int().min(0),
 }).partial();
@@ -139,8 +139,8 @@ export const deleteTraySchema = createTraySchema.pick({
 
 
 export const createTrayTypeSchema = z.object({
-    tray_type_uid: z.string().min(1).uuid(),
-    tray_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    tray_type_uid: z.string().toUpperCase().min(1).uuid(),
+    tray_part_number: z.string().toUpperCase().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
     tray_max_drive: z.coerce.number().int().min(1),
     tray_type_created_dt: z.coerce.date(),
     tray_type_updated_dt: z.coerce.date(),
@@ -163,8 +163,8 @@ export const deleteTrayTypeSchema = createTrayTypeSchema.pick({
 
 
 export const createBoxTypeSchema = z.object({
-    box_type_uid: z.string().min(1).uuid(),
-    box_part_number: z.string().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
+    box_type_uid: z.string().toUpperCase().min(1).uuid(),
+    box_part_number: z.string().toUpperCase().length(10, {message: "Please input a valid part number!"}).includes("-", {message: "Please input a valid part number!"}),
     box_max_tray: z.coerce.number().int().min(1),
     box_type_created_dt: z.coerce.date(),
     box_type_updated_dt: z.coerce.date(),
