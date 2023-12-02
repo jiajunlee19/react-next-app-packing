@@ -16,6 +16,7 @@ const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readShipdocTotalPage(itemsPerPage: number, query?: string) {
     noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -43,7 +44,7 @@ export async function readShipdocTotalPage(itemsPerPage: number, query?: string)
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE (shipdoc_uid like @query OR shipdoc_number like @query OR shipdoc_contact like @query);
@@ -74,6 +75,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
     // <dev only>
 
     const OFFSET = (currentPage - 1) * itemsPerPage;
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -105,7 +107,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE (shipdoc_uid like @query OR shipdoc_number like @query OR shipdoc_contact like @query)

@@ -18,6 +18,7 @@ const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readTrayTotalPage(itemsPerPage: number, query?: string, box_uid?: string) {
     noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -64,15 +65,12 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    SUM(l.lot_qty) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                     INNER JOIN "packing"."lot" l ON t.tray_uid = l.tray_uid
-                                    GROUP BY t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
-                                    tt.tray_part_number, tt.tray_max_drive
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
@@ -104,73 +102,31 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
     // <dev only>
 
     const OFFSET = (currentPage - 1) * itemsPerPage;
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
-            const grouped = await prisma.lot.groupBy({
-                by: ['tray_uid'],
-                _sum: {
-                    lot_qty: true,
-                },
-            });
-            const result = await prisma.tray.findMany({
-                include: {
-                    fk_tray_type_uid: {
-                        select: {
-                            tray_part_number: true,
-                            tray_max_drive: true,
-                        },
-                    },
-                },
-                where: {
-                    box_uid: box_uid,
-                    ...(query &&
-                        {
-                            OR: [
-                                ...(['tray_uid', 'tray_type_uid'].map((e) => {
-                                    return {
-                                        [e]: {
-                                            search: `${query}:*`,
-                                        },
-                                    };
-                                })),
-                                ...(['tray_part_number'].map((e) => {
-                                    return {
-                                        fk_tray_type_uid: {
-                                            [e]: {
-                                                search: `${query}:*`,
-                                            },
-                                        },
-                                    };
-                                })),
-                            ],
-                        }),
-                },
-                skip: OFFSET,
-                take: itemsPerPage,
-            });
-            const flattenResult = result.map((row) => {
-                return flattenNestedObject(row)
-            });
-            const summary = [];
-            for (let i = 0; i < grouped.length; i++ ) {
-                for (let j = 0; j < flattenResult.length; j++) {
-                    let element = {};
-                    if (grouped[i].tray_uid === flattenResult[j]?.tray_uid) {
-                        element = {
-                            ...flattenResult[j],
-                            tray_current_drive: grouped[i]._sum.lot_qty
-                        };
-                    } else {
-                        element = {
-                            ...flattenResult[j],
-                            tray_current_drive: 0,
-                        };
-                    }
-                    summary.push(element)
-                };
-            };
-            parsedForm = readTraySchema.array().safeParse(summary);
+            const result = await prisma.$queryRaw`
+                                WITH l AS (
+                                    SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                    FROM "packing"."lot" 
+                                    GROUP BY tray_uid
+                                )
+                                SELECT t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
+                                tt.tray_part_number, tt.tray_max_drive,
+                                COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
+                                FROM "packing"."tray" t
+                                INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                LEFT JOIN l ON t.tray_uid = l.tray_uid
+                                WHERE t.box_uid = UUID(${box_uid})
+                                AND (t.tray_uid||'' like ${QUERY}
+                                    OR tt.tray_part_number like ${QUERY}
+                                )
+                                ORDER BY t.tray_updated_dt desc
+                                OFFSET ${OFFSET} ROWS
+                                FETCH NEXT ${itemsPerPage} ROWS ONLY;
+                            `;
+            parsedForm = readTraySchema.array().safeParse(result);
         }
         else {
             let pool = await sql.connect(sqlConfig);
@@ -178,21 +134,23 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                             .input('box_uid', sql.VarChar, box_uid)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
-                            .query`WITH l AS (
-                                        SELECT tray_uid, SUM(lot_qty) tray_current_drive
+                            .input('query', sql.VarChar, QUERY)
+                            .query`
+                                    WITH l AS (
+                                        SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
                                         FROM "packing"."lot" 
                                         GROUP BY tray_uid
                                     )
-                                    SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
+                                    SELECT t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    IFNULL(l.tray_current_drive, 0)::INT tray_current_drive
+                                    COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    OUTER JOIN l ON t.tray_uid = l.tray_uid
+                                    LEFT JOIN l ON t.tray_uid = l.tray_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
+                                    )
                                     ORDER BY t.tray_updated_dt desc
                                     OFFSET @offset ROWS
                                     FETCH NEXT @limit ROWS ONLY;

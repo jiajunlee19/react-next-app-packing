@@ -16,6 +16,7 @@ const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string) {
     noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -43,7 +44,7 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query);
@@ -73,7 +74,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
+    const QUERY = query ? `${query || ''}%` : '%';
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -106,7 +107,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE (tray_type_uid like @query OR tray_part_number like @query)

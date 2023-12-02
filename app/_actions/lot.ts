@@ -17,6 +17,7 @@ const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readLotTotalPage(itemsPerPage: number, query?: string, tray_uid?: string) {
     noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -57,7 +58,7 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, tray_uid)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
                                     INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid
@@ -90,6 +91,7 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
     // <dev only>
 
     const OFFSET = (currentPage - 1) * itemsPerPage;
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -134,7 +136,7 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
                             .input('tray_uid', sql.VarChar, tray_uid)
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
                                     INNER JOIN "packing"."box" b ON l.tray_uid = b.tray_uid

@@ -116,6 +116,7 @@ export async function readUserByEmailAdmin(email: TEmailSchema) {
 
 export async function readUserTotalPage(itemsPerPage: number, query?: string) {
     noStore();
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -148,7 +149,7 @@ export async function readUserTotalPage(itemsPerPage: number, query?: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, email, role 
                                     FROM "packing"."user"
                                     WHERE (user_uid like @query OR email like @query);
@@ -179,6 +180,7 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
     // <dev only>
 
     const OFFSET = (currentPage - 1) * itemsPerPage;
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -215,7 +217,7 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, email, role 
                                     FROM "packing"."user"
                                     WHERE (user_uid like @query OR email like @query)
@@ -240,7 +242,7 @@ export async function readUserByPage(itemsPerPage: number, currentPage: number, 
 
 export async function readAdminTotalPage(itemsPerPage: number, query?: string) {
     noStore();
-    const queryChecked = query && "";
+    const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -275,7 +277,7 @@ export async function readAdminTotalPage(itemsPerPage: number, query?: string) {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('role', sql.VarChar, 'admin')
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, email, role 
                                     FROM "packing"."user"
                                     WHERE role = @role
@@ -306,7 +308,7 @@ export async function readAdminByPage(itemsPerPage: number, currentPage: number,
     // console.log("ok")
     // <dev only>
 
-    const queryChecked = query && "";
+    const QUERY = query ? `${query || ''}%` : '%';
     const OFFSET = (currentPage - 1) * itemsPerPage;
     let parsedForm;
     try {
@@ -346,7 +348,7 @@ export async function readAdminByPage(itemsPerPage: number, currentPage: number,
                             .input('role', sql.VarChar, 'admin')
                             .input('offset', sql.Int, OFFSET)
                             .input('limit', sql.Int, itemsPerPage)
-                            .input('query', sql.VarChar, query ? `${query || ''}%` : '%')
+                            .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, email, role 
                                     FROM "packing"."user"
                                     WHERE role = @role
