@@ -50,8 +50,8 @@ export const columns = [
     }),
     columnHelper.accessor("box_updated_dt", {
         id: "box_updated_dt",
-        header: "box_updated_dt",
-        footer: "box_updated_dt",
+        header: "box_shipped_dt",
+        footer: "box_shipped_dt",
         meta: {
             type: "date",
         },
