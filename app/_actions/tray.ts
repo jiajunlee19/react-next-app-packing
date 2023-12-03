@@ -362,62 +362,40 @@ export async function readTrayById(tray_uid: string) {
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
-            const grouped = await prisma.lot.groupBy({
-                by: ['tray_uid'],
-                _sum: {
-                    lot_qty: true,
-                },
-                where: {
-                    fk_tray_uid: {
-                        tray_uid: tray_uid,
-                    },
-                },
-            });
-            const result = await prisma.tray.findUnique({
-                include: {
-                    fk_tray_type_uid: {
-                        select: {
-                            tray_part_number: true,
-                            tray_max_drive: true,
-                        },
-                    },
-                },
-                where: {
-                    tray_uid: tray_uid,
-                },
-            });
-            const flattenResult = flattenNestedObject(result);
-            let summary = {};
-            if (grouped[0]?.tray_uid === flattenResult?.tray_uid) {
-                summary = {
-                    ...flattenResult,
-                    'tray_current_drive': grouped[0]._sum.lot_qty,
-                };
-            }
-            else {
-                summary = {
-                    ...flattenResult,
-                    'tray_current_drive': 0,
-                };
-            }
-            parsedForm = readTraySchema.safeParse(summary);
+            const result: any = await prisma.$queryRaw`
+                                WITH gl AS (
+                                    SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                    FROM "packing"."lot" 
+                                    WHERE tray_uid = UUID(${tray_uid})
+                                    GROUP BY tray_uid
+                                )
+                                SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
+                                tt.tray_part_number, tt.tray_max_drive,
+                                COALESCE(gl.tray_current_drive, 0)::INT tray_current_drive
+                                FROM "packing"."tray" t
+                                INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                LEFT JOIN gl ON t.tray_uid = gl.tray_uid
+                                WHERE t.tray_uid = UUID(${tray_uid});
+                            `;
+            parsedForm = readTraySchema.safeParse(result[0]);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, tray_uid)
-                            .query`WITH l AS (
-                                        SELECT tray_uid, SUM(lot_qty) tray_current_drive
+                            .query`
+                                    WITH gl AS (
+                                        SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
                                         FROM "packing"."lot" 
-                                        GROUP BY tray_uid
                                         WHERE tray_uid = @tray_uid
+                                        GROUP BY tray_uid
                                     )
                                     SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    IFNULL(l.tray_current_drive, 0)::INT tray_current_drive
+                                    COALESCE(gl.tray_current_drive, 0)::INT tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
-                                    OUTER JOIN l ON t.tray_uid = l.tray_uid
+                                    LEFT JOIN gl ON t.tray_uid = gl.tray_uid
                                     WHERE t.tray_uid = @tray_uid;
                             `;
             parsedForm = readTraySchema.safeParse(result.recordset[0]);
