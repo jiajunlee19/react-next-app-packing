@@ -102,3 +102,18 @@ Project workflow is visualized in the flowchart below.
     ![Feature_UndoShipBoxAdmin.PNG](/Misc/Feature_UndoShipBoxAdmin.PNG)
 
 <br>
+
+# Restriction Controls
+1. User is not allowed to ship empty box with tray count = 0.
+    ![Restriction_ShipBoxTrayCountZero.PNG](/Misc/Restriction_ShipBoxTrayCountZero.PNG)
+
+2. User is not allowed to ship empty box with drive qty = 0.
+    ![Restriction_ShipBoxDriveCountZero.PNG](/Misc/Restriction_ShipBoxDriveCountZero.PNG)
+
+3. User is not allowed to modify or delete any Lot on a shipped Box.
+    ![Restriction_ShippedBoxLot.PNG](/Misc/Restriction_ShippedBoxLot.PNG)
+
+4. User is now allowed to modify or delete any Tray on a shipped Box.
+    ![Restriction_ShippedBoxTray.PNG](/Misc/Restriction_ShippedBoxTray.PNG)
+
+<br>
