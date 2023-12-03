@@ -646,7 +646,7 @@ export async function readBoxById(box_uid: string) {
                                     WHERE box_uid = UUID(${box_uid})
                                     GROUP BY box_uid
                                 )
-                                SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
+                                SELECT b.box_uid, b.box_type_uid, b.box_status, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                 bt.box_part_number, bt.box_max_tray,
                                 COALESCE(gt.box_current_tray, 0)::INT box_current_tray
                                 FROM "packing"."box" b
@@ -667,13 +667,155 @@ export async function readBoxById(box_uid: string) {
                                         WHERE box_uid = @box_uid
                                         GROUP BY box_uid
                                     )
-                                    SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
+                                    SELECT b.box_uid, b.box_status, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     COALESCE(t.box_current_tray, 0)::INT box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     LEFT JOIN t ON b.box_uid = t.box_uid
                                     WHERE b.box_uid = @box_uid;
+                            `;
+            parsedForm = readBoxSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    return parsedForm.data
+};
+
+
+export async function readBoxStatusByBoxUid(box_uid: string) {
+    noStore();
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.box.findUnique({
+                select: {
+                    box_uid: true,
+                    box_status: true,
+                },
+                where: {
+                    box_uid: box_uid,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('box_uid', sql.VarChar, box_uid)
+                            .query`
+                                    SELECT b.box_uid, b.box_status
+                                    FROM "packing"."box" b
+                                    WHERE b.box_uid = @box_uid;
+                            `;
+            parsedForm = readBoxSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    return parsedForm.data
+};
+
+
+export async function readBoxStatusByTrayUid(tray_uid: string) {
+    noStore();
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.tray.findUnique({
+                select: {
+                    tray_uid: true,
+                    fk_box_uid: {
+                        select: {
+                            box_uid: true,
+                            box_status: true,
+                        },
+                    },
+                },
+                where: {
+                    tray_uid: tray_uid,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .query`
+                                    SELECT t.tray_uid, b.box_uid, b.box_status
+                                    FROM "packing"."tray" t
+                                    INNER JOIN "packing"."box" b ON t.box_uid = b.box_uid
+                                    WHERE t.tray_uid = @tray_uid;
+                            `;
+            parsedForm = readBoxSchema.safeParse(result.recordset[0]);
+        }
+
+        if (!parsedForm.success) {
+            throw new Error(parsedForm.error.message)
+        };
+
+    } 
+    catch (err) {
+        throw new Error(getErrorMessage(err))
+    }
+
+    return parsedForm.data
+};
+
+
+export async function readBoxStatusByLotUid(lot_uid: string) {
+    noStore();
+    let parsedForm;
+    try {
+        if (parsedEnv.DB_TYPE === 'PRISMA') {
+            const result = await prisma.lot.findUnique({
+                select: {
+                    fk_tray_uid: {
+                        select: {
+                            fk_box_uid: {
+                                select: {
+                                    box_uid: true,
+                                    box_status: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                where: {
+                    lot_uid: lot_uid,
+                },
+            });
+            const flattenResult = flattenNestedObject(result);
+            parsedForm = readBoxSchema.safeParse(flattenResult);
+        }
+        else {
+            let pool = await sql.connect(sqlConfig);
+            const result = await pool.request()
+                            .input('lot_uid', sql.VarChar, lot_uid)
+                            .query`
+                                    SELECT l.lot_uid, t.tray_uid, b.box_uid, b.box_status
+                                    FROM "packing"."lot" l
+                                    INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                    INNER JOIN "packing"."box" b ON t.box_uid = b.box_uid
+                                    WHERE l.lot_uid = @lot_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
         }

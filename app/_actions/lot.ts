@@ -12,6 +12,7 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayById } from '@/app/_actions/tray';
+import { readBoxStatusByLotUid, readBoxStatusByTrayUid } from '@/app/_actions/box';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
@@ -162,8 +163,19 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
 };
 
 export async function createLot(prevState: State, formData: FormData): StatePromise {
-
+    
     const now = new Date();
+
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByTrayUid(formData.get('tray_uid') as string),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to create Lot !"]},
+            message: "Given box is not active. Failed to create Lot !"
+        }
+    };
 
     const parsedForm = createLotSchema.safeParse({
         lot_uid: uuidv5((formData.get('tray_id') as string + formData.get('lot_id') as string + now.toString()), UUID5_SECRET),
@@ -230,6 +242,17 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
 
     const now = new Date();
 
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByTrayUid(formData.get('tray_uid') as string),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to create Lot !"]},
+            message: "Given box is not active. Failed to create Lot !"
+        }
+    };
+
     const parsedForm = updateLotSchema.safeParse({
         lot_uid: formData.get('lot_uid'),
         lot_qty: formData.get('lot_qty'),
@@ -278,6 +301,17 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
 
 
 export async function deleteLot(lot_uid: string): StatePromise {
+
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByLotUid(lot_uid),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to delete Lot !"]},
+            message: "Given box is not active. Failed to delete Lot !"
+        }
+    };
 
     const parsedForm = deleteLotSchema.safeParse({
         lot_uid: lot_uid,

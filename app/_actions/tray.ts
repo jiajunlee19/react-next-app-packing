@@ -12,7 +12,7 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayTypeUid } from '@/app/_actions/tray_type';
-import { readBoxById } from '@/app/_actions/box';
+import { readBoxById, readBoxStatusByBoxUid, readBoxStatusByTrayUid } from '@/app/_actions/box';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
@@ -173,9 +173,17 @@ export async function createTray(prevState: State, formData: FormData): StatePro
 
     const now = new Date();
 
-    const [{tray_type_uid}] = await Promise.all ([
+    const [{tray_type_uid}, {box_status}] = await Promise.all ([
         await readTrayTypeUid( formData.get('tray_part_number') as string ),
+        await readBoxStatusByBoxUid(formData.get('box_uid') as string),
     ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to create tray !"]},
+            message: "Given box is not active. Failed to create tray !"
+        }
+    };
 
     const parsedForm = createTraySchema.safeParse({
         tray_uid: uuidv5((tray_type_uid as string + formData.get('box_uid') as string + now.toString()), UUID5_SECRET),
@@ -240,6 +248,17 @@ export async function updateTray(tray_uid: string): StatePromise {
 
     const now = new Date();
 
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByBoxUid(tray_uid),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to update tray !"]},
+            message: "Given box is not active. Failed to update tray !"
+        }
+    };
+
     const parsedForm = updateTraySchema.safeParse({
         tray_uid: tray_uid,
         tray_updated_dt: now,
@@ -286,6 +305,17 @@ export async function updateTray(tray_uid: string): StatePromise {
 
 
 export async function deleteTray(tray_uid: string): StatePromise {
+    
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByTrayUid(tray_uid),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to delete tray !"]},
+            message: "Given box is not active. Failed to delete tray !"
+        }
+    };
 
     const parsedForm = deleteTraySchema.safeParse({
         tray_uid: tray_uid,
