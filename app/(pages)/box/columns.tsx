@@ -1,9 +1,8 @@
 "use client"
 
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { deleteBox, shipBox } from "@/app/_actions/box";
 import TableActionButton from "@/app/_components/basic/button_table_action";
-import ShipButton from "@/app/_components/basic/button_ship";
 import UpdateButton from "@/app/_components/basic/button_update";
 import { TReadBoxSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -26,7 +25,7 @@ export const columns = [
         footer: "ship",
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
-                {!!shipAction && <ShipButton shipId={row.original.box_uid as string} shipAction={shipAction} />}
+                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),
