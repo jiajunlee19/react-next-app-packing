@@ -375,6 +375,11 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                     },
                 ],
                 where: {
+                    fk_tray_uid: {
+                        fk_box_uid: {
+                            box_status: 'shipped',
+                        },
+                    },
                     ...(query &&
                         {
                             OR: [
