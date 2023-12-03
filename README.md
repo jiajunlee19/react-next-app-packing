@@ -95,4 +95,10 @@ Project workflow is visualized in the flowchart below.
     - [Update existing Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/[lot_uid]/update/page.tsx)
     ![Feature_UpdateExistingLot.PNG](/Misc/Feature_UpdateExistingLot.PNG)
 
+12. [View History of shipped Box](/app/\(pages\)/history/page.tsx)
+    ![Feature_ViewShippedBox.PNG](/Misc/Feature_ViewShippedBox.PNG)
+
+13. [Admin - Undo Ship Box](/app/\(pages\)/protected/history/page.tsx)
+    ![Feature_UndoShipBoxAdmin.PNG](/Misc/Feature_UndoShipBoxAdmin.PNG)
+
 <br>
