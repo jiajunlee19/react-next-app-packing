@@ -222,6 +222,11 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
                     },
                 },
                 where: {
+                    fk_tray_uid: {
+                        fk_box_uid: {
+                            box_status: 'shipped',
+                        },
+                    },
                     ...(query &&
                         {
                             OR: [

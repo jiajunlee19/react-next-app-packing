@@ -15,6 +15,7 @@ const deleteAction = deleteBox;
 const shipAction = shipBox;
 
 const confirmMsg = 'Are you sure to delete this item?';
+const confirmMsgShip = 'Are you sure to ship this item?';
 
 const columnHelper = createColumnHelper<TReadBoxSchema>();
 
@@ -25,7 +26,7 @@ export const columns = [
         footer: "ship",
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
-                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsg} />}
+                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsgShip} />}
             </div>
         ),
     }),
