@@ -41,7 +41,7 @@ export async function POST(request: Request) {
                             .input('schema', sql.VarChar, schema)
                             .input('table', sql.VarChar, table)
                             .input('email', sql.VarChar, parsedForm.data.email)
-                            .query`SELECT user_uid, email, password, role, user_createdAt, user_updatedAt
+                            .query`SELECT user_uid, email, password, role, user_created_dt, user_updated_dt
                                     FROM "@schema"."@table"
                                     WHERE email = @email;
                             `;

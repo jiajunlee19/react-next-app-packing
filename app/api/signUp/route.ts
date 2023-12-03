@@ -22,8 +22,8 @@ export async function POST(request: Request) {
         email: body.email,
         password: body.password,
         role: 'user',
-        user_createdAt: now,
-        user_updatedAt: now,
+        user_created_dt: now,
+        user_updated_dt: now,
     });
 
     if (!parsedForm.success) {
@@ -45,11 +45,11 @@ export async function POST(request: Request) {
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('email', sql.VarChar, parsedForm.data.email)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10))
-                            .input('user_createdAt', sql.DateTime, parsedForm.data.user_createdAt)
-                            .input('user_updatedAt', sql.DateTime, parsedForm.data.user_updatedAt)
+                            .input('user_created_dt', sql.DateTime, parsedForm.data.user_created_dt)
+                            .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
                             .query`INSERT INTO "@schema"."@table" 
-                                    (user_uid, email, password, user_createdAt, user_updatedAt)
-                                    VALUES (@user_uid, @email, @password, @user_createdAt, @user_updatedAt);
+                                    (user_uid, email, password, user_created_dt, user_updated_dt)
+                                    VALUES (@user_uid, @email, @password, @user_created_dt, @user_updated_dt);
                             `;
         }
 
