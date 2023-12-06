@@ -30,7 +30,7 @@ export const envSchema = z.object({
     // GitHub OAuth
     GITHUB_ID: z.string().min(1),
     GITHUB_SECRET: z.string().min(1),
-    NEXTAUTH_URL: z.string().min(1).url(),
+    // NEXTAUTH_URL: z.string().min(1).url(),
     NEXTAUTH_SECRET: z.string().min(1),
 
     // UUID namespace secret
