@@ -1,6 +1,7 @@
 # Introduction
 This is a packing app, templated from [react-next-app-template](https://github.com/jiajunlee19/react-next-app-template), developed by [jiajunlee](https://github.com/jiajunlee19).
 
+Visit to the production-deployed website: [https://react-next-app-packing.vercel.app/](https://react-next-app-packing.vercel.app/)
 
 <br>
 
