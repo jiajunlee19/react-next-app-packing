@@ -107,13 +107,13 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.$queryRaw`
                                 WITH l AS (
-                                    SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                    SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
                                     FROM "packing"."lot" 
                                     GROUP BY tray_uid
                                 )
                                 SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                 tt.tray_part_number, tt.tray_max_drive,
-                                COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
+                                CAST(COALESCE(l.tray_current_drive, 0) as INT) tray_current_drive
                                 FROM "packing"."tray" t
                                 INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN l ON t.tray_uid = l.tray_uid
@@ -136,13 +136,13 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                             .input('query', sql.VarChar, QUERY)
                             .query`
                                     WITH l AS (
-                                        SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                        SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
                                         FROM "packing"."lot" 
                                         GROUP BY tray_uid
                                     )
                                     SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    COALESCE(l.tray_current_drive, 0)::INT tray_current_drive
+                                    CAST(COALESCE(l.tray_current_drive, 0) as INT) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                     LEFT JOIN l ON t.tray_uid = l.tray_uid
@@ -364,14 +364,14 @@ export async function readTrayById(tray_uid: string) {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result: any = await prisma.$queryRaw`
                                 WITH gl AS (
-                                    SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                    SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
                                     FROM "packing"."lot" 
                                     WHERE tray_uid = UUID(${tray_uid})
                                     GROUP BY tray_uid
                                 )
                                 SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                 tt.tray_part_number, tt.tray_max_drive,
-                                COALESCE(gl.tray_current_drive, 0)::INT tray_current_drive
+                                CAST(COALESCE(gl.tray_current_drive, 0) as INT) tray_current_drive
                                 FROM "packing"."tray" t
                                 INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN gl ON t.tray_uid = gl.tray_uid
@@ -385,14 +385,14 @@ export async function readTrayById(tray_uid: string) {
                             .input('tray_uid', sql.VarChar, tray_uid)
                             .query`
                                     WITH gl AS (
-                                        SELECT tray_uid, SUM(lot_qty)::INT tray_current_drive
+                                        SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
                                         FROM "packing"."lot" 
                                         WHERE tray_uid = @tray_uid
                                         GROUP BY tray_uid
                                     )
                                     SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    COALESCE(gl.tray_current_drive, 0)::INT tray_current_drive
+                                    CAST(COALESCE(gl.tray_current_drive, 0) as INT) tray_current_drive
                                     FROM "packing"."tray" t
                                     INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                     LEFT JOIN gl ON t.tray_uid = gl.tray_uid

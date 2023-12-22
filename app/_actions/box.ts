@@ -83,7 +83,7 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
                             .query`
                                     SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
-                                    s.shipdoc_number, s.shipdoc_contact,
+                                    s.shipdoc_number, s.shipdoc_contact
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
@@ -124,14 +124,14 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.$queryRaw`
                                 WITH gt AS (
-                                    SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                    SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                     FROM "packing"."tray"
                                     GROUP BY box_uid
                                 )
                                 SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                 bt.box_part_number, bt.box_max_tray,
                                 s.shipdoc_number, s.shipdoc_contact,
-                                COALESCE(gt.box_current_tray, 0)::INT box_current_tray
+                                CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
                                 FROM "packing"."box" b
                                 INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                 INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
@@ -155,14 +155,14 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                             .input('query', sql.VarChar, QUERY)
                             .query`
                                     WITH gt AS (
-                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                         FROM "packing"."tray"
                                         GROUP BY box_uid
                                     )
                                     SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact,
-                                    COALERSE(gt.box_current_tray, 0)::INT box_current_tray
+                                    CAST(COALERSE(gt.box_current_tray, 0) as INT) box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
@@ -641,14 +641,14 @@ export async function readBoxById(box_uid: string) {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result: any = await prisma.$queryRaw`
                                 WITH gt AS (
-                                    SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                    SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                     FROM "packing"."tray"
                                     WHERE box_uid = UUID(${box_uid})
                                     GROUP BY box_uid
                                 )
                                 SELECT b.box_uid, b.box_type_uid, b.box_status, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                 bt.box_part_number, bt.box_max_tray,
-                                COALESCE(gt.box_current_tray, 0)::INT box_current_tray
+                                CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
                                 FROM "packing"."box" b
                                 INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                 LEFT JOIN gt ON b.box_uid = gt.box_uid
@@ -662,14 +662,14 @@ export async function readBoxById(box_uid: string) {
                             .input('box_uid', sql.VarChar, box_uid)
                             .query`
                                     WITH gt AS (
-                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                         FROM "packing"."tray"
                                         WHERE box_uid = @box_uid
                                         GROUP BY box_uid
                                     )
                                     SELECT b.box_uid, b.box_status, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
-                                    COALESCE(t.box_current_tray, 0)::INT box_current_tray
+                                    CAST(COALESCE(t.box_current_tray, 0) as INT) box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     LEFT JOIN t ON b.box_uid = t.box_uid
@@ -840,20 +840,20 @@ export async function checkBoxShippableById(box_uid: string) {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result: any = await prisma.$queryRaw`
                                     WITH gt AS (
-                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                         FROM "packing"."tray"
                                         WHERE box_uid = UUID(${box_uid})
                                         GROUP BY box_uid
                                     ),
                                     gl AS (
-                                        SELECT t.box_uid, SUM(l.lot_qty)::INT box_current_drive
+                                        SELECT t.box_uid, CAST(SUM(l.lot_qty) as INT) box_current_drive
                                         FROM "packing"."lot" l
                                         INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
                                         GROUP BY t.box_uid
                                     ) 
                                     SELECT b.box_uid,
-                                    COALESCE(gt.box_current_tray, 0)::INT box_current_tray,
-                                    COALESCE(gl.box_current_drive, 0)::INT box_current_drive
+                                    CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray,
+                                    CAST(COALESCE(gl.box_current_drive, 0) as INT) box_current_drive
                                     FROM "packing"."box" b
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     LEFT JOIN gl ON b.box_uid = gl.box_uid
@@ -867,20 +867,20 @@ export async function checkBoxShippableById(box_uid: string) {
                             .input('box_uid', sql.VarChar, box_uid)
                             .query`
                                     WITH gt AS (
-                                        SELECT box_uid, COUNT(tray_uid)::INT box_current_tray
+                                        SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                         FROM "packing"."tray"
                                         WHERE box_uid = @box_uid
                                         GROUP BY box_uid
                                     ),
                                     gl AS (
-                                        SELECT t.box_uid, SUM(l.lot_qty)::INT box_current_drive
+                                        SELECT t.box_uid, CAST(SUM(l.lot_qty) as INT) box_current_drive
                                         FROM "packing"."lot" l
                                         INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
                                         GROUP BY t.box_uid
                                     ) 
                                     SELECT b.box_uid,
-                                    COALESCE(gt.box_current_tray, 0)::INT box_current_tray,
-                                    COALESCE(gl.box_current_drive, 0)::INT box_current_drive
+                                    CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray,
+                                    CAST(COALESCE(gl.box_current_drive, 0) as INT) box_current_drive
                                     FROM "packing"."box" b
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     LEFT JOIN gl ON b.box_uid = gl.box_uid
