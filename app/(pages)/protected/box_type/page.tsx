@@ -16,7 +16,7 @@ export default async function BoxType({ searchParams }: { searchParams?: { items
 
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query || undefined;
+    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
 
     const totalPage = await readBoxTypeTotalPage(itemsPerPage, query);
 

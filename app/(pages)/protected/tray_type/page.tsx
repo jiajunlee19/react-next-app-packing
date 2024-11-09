@@ -16,7 +16,7 @@ export default async function TrayType({ searchParams }: { searchParams?: { item
 
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query || undefined;
+    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
 
     const totalPage = await readTrayTypeTotalPage(itemsPerPage, query);
 

@@ -16,7 +16,7 @@ export default async function User({ searchParams }: { searchParams?: { itemsPer
 
   const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
   const currentPage = Number(searchParams?.currentPage) || 1;
-  const query = searchParams?.query || undefined;
+  const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
 
   const totalPage = await readUserTotalPage(itemsPerPage, query);
   
