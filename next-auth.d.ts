@@ -7,7 +7,7 @@ declare module "next-auth" {
     interface Session {
         user: {
             user_uid: string,
-            email: string,
+            username: string,
             // password: string,
             role: "user" | "admin" | "boss",
             jwtToken: string,
@@ -19,7 +19,7 @@ declare module "next-auth" {
     // extends DefaultUser 
     {
         user_uid: string,
-        email: string,
+        username: string,
         // password: string,
         role: "user" | "admin" | "boss",
         jwtToken: string,
@@ -31,7 +31,7 @@ declare module "next-auth/jwt" {
     // extends DefaultJWT 
     {
         user_uid: string,
-        email: string,
+        username: string,
         // password: string,
         role: "user" | "admin" | "boss",
         jwtToken: string,

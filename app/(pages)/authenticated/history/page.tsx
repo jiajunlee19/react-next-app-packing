@@ -2,7 +2,7 @@ import { readShippedBoxTotalPage, readShippedBoxByPage } from "@/app/_actions/bo
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { columns } from "@/app/(pages)/history/columns";
+import { columns } from "@/app/(pages)/authenticated/history/columns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";

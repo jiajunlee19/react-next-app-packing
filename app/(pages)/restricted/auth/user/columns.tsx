@@ -26,10 +26,10 @@ export const columns = [
             type: "text",
         },
     }),
-    columnHelper.accessor("email", {
-        id: "email",
-        header: "email",
-        footer: "email",
+    columnHelper.accessor("username", {
+        id: "username",
+        header: "username",
+        footer: "username",
         meta: {
             type: "text",
         },
@@ -49,7 +49,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[user_uid]", row.original.user_uid as string)} />}
-                {!!deleteAction && <TableActionButton id={row.original.user_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
+                {!!deleteAction && <TableActionButton id={row.original.user_uid as string} action={deleteAction} redirectLink="/restricted/auth/user" icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

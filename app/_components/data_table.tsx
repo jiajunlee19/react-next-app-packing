@@ -1,5 +1,5 @@
 import { type TRowData, type StatePromise, TRole } from "@/app/_libs/types";
-import Table from "@/app/_components/basic/table";
+import BaseTable from "@/app/_components/basic/table";
 import { ColumnDef } from "@tanstack/react-table";
 
 type DataTableProps = {
@@ -64,6 +64,6 @@ export default async function DataTable( { itemsPerPage, currentPage, query, id,
     // });
 
     return (
-        <Table columns={columns} data={fetchedData} />
+        <BaseTable columns={columns} data={fetchedData} />
     );
 };

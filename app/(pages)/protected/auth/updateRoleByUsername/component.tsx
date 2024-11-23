@@ -27,17 +27,17 @@ export default function UpdateRoleComponent( {user}: TUpdateRoleComponentProps )
     const pathname = usePathname();
     const { replace } = useRouter();
 
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
         // URLSearchParams is used for manipulating the URL query parameters
         const params = new URLSearchParams(searchParams);
 
         // set params with value and delete params if no value
         if (e.target.value) {
-            params.set("email", e.target.value);
+            params.set("username", e.target.value);
         }
         else {
-            params.delete("email");
+            params.delete("username");
         }
 
         // replace url with params, without refreshing the page
@@ -63,7 +63,7 @@ export default function UpdateRoleComponent( {user}: TUpdateRoleComponentProps )
             <form ref={formRef} action={ async (formData) => {
                         const result = await updateRoleAdmin(formData);
                         if (result?.error && result?.message) {
-                            toast.error(result.message);
+                            toast.error(JSON.stringify(result.error));
                         }
                         else if (result?.message) {
                             toast.success(result.message);
@@ -72,8 +72,8 @@ export default function UpdateRoleComponent( {user}: TUpdateRoleComponentProps )
                     }
                 }>
                 <input name="user_uid" type="text" defaultValue={user?.user_uid || session.user.user_uid} hidden formNoValidate />
-                <label htmlFor="email">Email: </label>
-                <input name="email" type="email" placeholder="Enter your email" defaultValue={searchParams.get("email")?.toString() || session.user.email} onBlur={handleEmailChange} onChange={useDebouncedCallback(handleEmailChange, 3000)} required formNoValidate />
+                <label htmlFor="username">Username: </label>
+                <input name="username" type="text" placeholder="Enter your username" defaultValue={searchParams.get("username")?.toString() || session.user.username} onBlur={handleUsernameChange} onChange={useDebouncedCallback(handleUsernameChange, 3000)} required formNoValidate />
                 <label htmlFor="role">Role: </label>
                 <select name="role" defaultValue="user" required>
                     {["user", "admin"].map((role) => {

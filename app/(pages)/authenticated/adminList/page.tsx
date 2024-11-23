@@ -3,7 +3,7 @@ import { type TReadUserWithoutPassSchema } from "@/app/_libs/zod_auth";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { columns } from "@/app/(pages)/adminList/columns";
+import { columns } from "@/app/(pages)/authenticated/adminList/columns";
 import { Suspense } from "react";
 import type { Metadata } from 'next';
 
@@ -12,11 +12,14 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function AdminListPage({ searchParams }: { searchParams?: { itemsPerPage?: string, currentPage?: string, query?: string } }) {
+export default async function AdminListPage(
+    props: { searchParams?: Promise<{ itemsPerPage?: string, currentPage?: string, query?: string }> }
+) {
+    const searchParams = await props.searchParams;
 
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
+    const query = searchParams?.query || undefined;
 
     const totalPage = await readAdminTotalPage(itemsPerPage, query);
 

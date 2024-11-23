@@ -8,7 +8,7 @@ DROP TABLE iF EXISTS "packing"."user";
 
 CREATE TABLE "packing"."user" (
     user_uid UNIQUEIDENTIFIER NOT NULL,
-    email VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL,
     role VARCHAR(50) NOT NULL,
     user_created_dt DATETIME NOT NULL,

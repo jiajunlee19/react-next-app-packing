@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { options } from "@/app/_libs/nextAuth_options";
-import { readUserByEmail } from "@/app/_actions/auth";
-import UpdateRoleComponent from '@/app/(pages)/restricted/auth/updateRoleByEmail/component';
+import { readUserByUsername } from "@/app/_actions/auth";
+import UpdateRoleComponent from '@/app/(pages)/restricted/auth/updateRoleByUsername/component';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -10,7 +10,8 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateRolePage({searchParams}: {searchParams?: {email?: string}} ) {
+export default async function UpdateRolePage(props: {searchParams?: Promise<{username?: string}>}) {
+    const searchParams = await props.searchParams;
 
     const session = await getServerSession(options);
 
@@ -18,11 +19,11 @@ export default async function UpdateRolePage({searchParams}: {searchParams?: {em
         redirect("/denied");
     }
 
-    const email = searchParams?.email?.toString() || session.user.email; 
+    const username = searchParams?.username?.toString() || session.user.username;
     let user;
 
     try {
-        user = await readUserByEmail(email);
+        user = await readUserByUsername(username);
     } catch (err) {
         user = null;
     }

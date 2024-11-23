@@ -17,6 +17,14 @@ export default withAuth(
         //     return new NextResponse(JSON.stringify({error: "Unauthorized!"}), {status: 401})
         // }
 
+        if (request.nextUrl.pathname.startsWith("/authenticated")
+            && !request.nextauth.token)
+        {
+            return NextResponse.rewrite(
+                new URL("/denied", request.url)
+            )
+        }
+
         if (request.nextUrl.pathname.startsWith("/protected")
             && request.nextauth.token?.role !== "admin"
             && request.nextauth.token?.role !== "boss")
@@ -36,11 +44,12 @@ export default withAuth(
     {
         secret: parsedEnv.NEXTAUTH_SECRET,
         callbacks: {
-            authorized: ({ token }) => !!token
+            // authorized: ({ token }) => !!token,
+            authorized: () => true,
         },
     }
 )
 
 // Applies next-auth only to matching routes - can be regex
 // Ref: https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-export const config = { matcher: ["/protected/:path*", "/restricted/:path*"] }
+export const config = { matcher: ["/authenticated/:path*", "/protected/:path*", "/restricted/:path*"] }

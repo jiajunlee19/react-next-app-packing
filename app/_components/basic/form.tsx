@@ -1,11 +1,10 @@
 "use client"
 
-import React, { useRef } from "react";
+import React, { useActionState, useRef } from "react";
 import SubmitButton from "@/app/_components/basic/button_submit";
 import { type TInputType, type TRowData, type State, type StatePromise, type TFormMode } from "@/app/_libs/types";
 import { toast } from "react-hot-toast";
 import { getString } from "@/app/_libs/toString_handler";
-import { useFormState } from "react-dom";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
@@ -22,7 +21,7 @@ type FormProps = {
 export default function Form( {formTitle, inputType, rowData, selectOptionData, action, formAction, redirectLink}: FormProps ) {
 
     const initialState  = { message: null, errors: {} };
-    const [state, dispatch] = useFormState(formAction, initialState);
+    const [state, dispatch] = useActionState(formAction, initialState);
 
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -50,11 +49,6 @@ export default function Form( {formTitle, inputType, rowData, selectOptionData, 
 
         // map each row into select option
         const selectOption = selectOptionData?.map((row) => {
-
-            // if null, skip adding it into the select options
-            if (!getString(row?.[key])) {
-                return
-            }
 
             return (
                 <option key={getString(row?.[key])} defaultValue={getString(row?.[key])}>{getString(row?.[key])}</option>
@@ -178,4 +172,4 @@ export default function Form( {formTitle, inputType, rowData, selectOptionData, 
             <button type="button" className="btn-cancel w-40 mr-4 mt-4" onClick={() => formRef.current?.reset()}>Reset</button>
         </form>
     );
-};
+}

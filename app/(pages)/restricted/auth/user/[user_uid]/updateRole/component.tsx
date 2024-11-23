@@ -42,7 +42,7 @@ export default function UpdateRoleComponent({ user }: TUpdateRoleComponentProps)
                 formTitle="Update Role"
                 inputType={{
                     'user_uid': 'hidden',
-                    'email': 'readonly',
+                    'username': 'readonly',
                     'role': 'select',
                 }}
                 rowData={user}

@@ -1,4 +1,4 @@
-import { readUserById, updateRole } from "@/app/_actions/auth";
+import { readUserById } from "@/app/_actions/auth";
 import type { Metadata } from 'next'
 import UpdateRoleComponent from "@/app/(pages)/restricted/auth/user/[user_uid]/updateRole/component";
 
@@ -7,7 +7,8 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateRole({params}: {params: {user_uid: string}}) {
+export default async function UpdateRole(props: {params: Promise<{user_uid: string}>}) {
+    const params = await props.params;
 
     const user_uid = params.user_uid;
 
@@ -24,5 +25,4 @@ export default async function UpdateRole({params}: {params: {user_uid: string}})
     return (
         <UpdateRoleComponent user={user} />
     );
-
 };
