@@ -3,7 +3,7 @@ import { readBoxById } from "@/app/_actions/box";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { columns } from "@/app/(pages)/box/[box_uid]/tray/columns";
+import { columns } from "@/app/(pages)/authenticated/box/[box_uid]/tray/columns";
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
 import Link from "next/link";
 import { Suspense } from "react";
