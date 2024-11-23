@@ -27,7 +27,7 @@ export default async function CreateTray(props: CreateTrayProps) {
     return (
         <>  
             <Breadcrumbs breadcrumbs={[
-                {label: 'Box', href: '/box', active: false},
+                {label: 'Box', href: '/authenticated/box', active: false},
                 {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
                 {label: "Create Tray", href: `/box/${box_uid}/tray/create`, active: true}
             ]} />

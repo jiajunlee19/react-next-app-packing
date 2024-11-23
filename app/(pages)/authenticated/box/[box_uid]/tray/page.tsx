@@ -49,7 +49,7 @@ export default async function Tray(props : TrayProps) {
         <>
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
-                    {label: 'Box', href: '/box', active: false},
+                    {label: 'Box', href: '/authenticated/box', active: false},
                     {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: true}
                 ]} />
             </div>

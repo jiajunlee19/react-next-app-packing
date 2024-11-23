@@ -77,23 +77,23 @@ Project workflow is visualized in the flowchart below.
     ![Feature_UpdateExistingShipdoc.PNG](/Misc/Feature_UpdateExistingShipdoc.PNG)
 
 9. Manage Box
-    - [View all box](/app/\(pages\)/box/page.tsx)
+    - [View all box](/app/\(pages\)/authenticated/box/page.tsx)
     ![Feature_ViewAllBox.PNG](/Misc/Feature_ViewAllBox.PNG)
-    - [Create new box](/app/\(pages\)/box/create/page.tsx)
+    - [Create new box](/app/\(pages\)/authenticated/box/create/page.tsx)
     ![Feature_CreateNewBox.PNG](/Misc/Feature_CreateNewBox.PNG)
 
 10. Manage Tray in a Box
-    - [View all tray](/app/\(pages\)/box/[box_uid]/tray/page.tsx)
+    - [View all tray](/app/\(pages\)/authenticated/box/[box_uid]/tray/page.tsx)
     ![Feature_ViewAllTray.PNG](/Misc/Feature_ViewAllTray.PNG)
-    - [Create new tray](/app/\(pages\)/box/[box_uid]/tray/create/page.tsx)
+    - [Create new tray](/app/\(pages\)/authenticated/box/[box_uid]/tray/create/page.tsx)
     ![Feature_CreateNewTray.PNG](/Misc/Feature_CreateNewTray.PNG)
 
 11. Manage Lot in a Tray
-    - [View all Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/page.tsx)
+    - [View all Lot](/app/\(pages\)/authenticated/box/[box_uid]/tray/[tray_uid]/lot/page.tsx)
     ![Feature_ViewAllLot.PNG](/Misc/Feature_ViewAllLots.PNG)
-    - [Create new Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/create/page.tsx)
+    - [Create new Lot](/app/\(pages\)/authenticated/box/[box_uid]/tray/[tray_uid]/lot/create/page.tsx)
     ![Feature_CreateNewLot.PNG](/Misc/Feature_CreateNewLot.PNG)
-    - [Update existing Lot](/app/\(pages\)/box/[box_uid]/tray/[tray_uid]/lot/[lot_uid]/update/page.tsx)
+    - [Update existing Lot](/app/\(pages\)/authenticated/box/[box_uid]/tray/[tray_uid]/lot/[lot_uid]/update/page.tsx)
     ![Feature_UpdateExistingLot.PNG](/Misc/Feature_UpdateExistingLot.PNG)
 
 12. [View History of shipped Box](/app/\(pages\)/history/page.tsx)

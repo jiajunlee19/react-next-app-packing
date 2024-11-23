@@ -77,7 +77,7 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    // revalidatePath('/box/[box_uid]/tray/[tray_uid]/lot', 'page');
+    // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return totalPage
 };
 
@@ -158,7 +158,7 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
         throw new Error(getErrorMessage(err))
     }
 
-    // revalidatePath('/box/[box_uid]/tray/[tray_uid]/lot', 'page');
+    // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return parsedForm.data
 };
 
@@ -231,7 +231,7 @@ export async function createLot(prevState: State, formData: FormData): StateProm
         }
     }
 
-    // revalidatePath('/box/[box_uid]/tray/[tray_uid]/lot', 'page');
+    // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return { 
         message: `Successfully created lot ${parsedForm.data.lot_uid}` 
     }
@@ -295,7 +295,7 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
         }
     }
 
-    // revalidatePath('/box/[box_uid]/tray/[tray_uid]/lot', 'page');
+    // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return { message: `Successfully updated lot ${parsedForm.data.lot_uid}` }
 };
 
@@ -349,7 +349,7 @@ export async function deleteLot(lot_uid: string): StatePromise {
         }
     }
 
-    // revalidatePath('/box/[box_uid]/tray/[tray_uid]/lot', 'page');
+    // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return { message: `Successfully deleted lot ${parsedForm.data.lot_uid}` }
 };
 

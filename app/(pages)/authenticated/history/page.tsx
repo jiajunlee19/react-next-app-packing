@@ -41,7 +41,7 @@ export default async function ShippedBox(
     return (
         <>
             <h1>{pageTitle}</h1>
-            {/* <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/box/create">
+            {/* <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/authenticated/box/create">
                 <button className="btn-primary w-min">
                     {createButtonTitle}
                 </button>

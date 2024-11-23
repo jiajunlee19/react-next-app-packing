@@ -53,7 +53,7 @@ export default async function Lot(props: LotProps) {
         <>
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
-                    {label: 'Box', href: '/box', active: false},
+                    {label: 'Box', href: '/authenticated/box', active: false},
                     {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
                     {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: true},
                 ]} />

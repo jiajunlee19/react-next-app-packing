@@ -20,8 +20,8 @@ export default async function CreateBox() {
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: "Box", href: "/box", active: false},
-                {label: "Create", href: "/box/create", active: true}
+                {label: "Box", href: "/authenticated/box", active: false},
+                {label: "Create", href: "/authenticated/box/create", active: true}
             ]} />
             <Form 
                 formTitle="Create Box"
@@ -33,7 +33,7 @@ export default async function CreateBox() {
                 selectOptionData={[...boxType, ...shipdoc]}
                 action="create"
                 formAction={createBox}
-                redirectLink="/box"
+                redirectLink="/authenticated/box"
             />
         </>
     );

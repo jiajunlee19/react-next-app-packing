@@ -38,7 +38,7 @@ export default async function UpdateLot(props : UpdateLotProps) {
     return (
         <>
             <Breadcrumbs breadcrumbs={[
-                {label: 'Box', href: '/box', active: false},
+                {label: 'Box', href: '/authenticated/box', active: false},
                 {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
                 {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: false},
                 {label: `Lot: ${lot_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot/${lot_uid}/update`, active: true}
