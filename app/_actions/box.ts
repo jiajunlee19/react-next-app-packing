@@ -103,7 +103,7 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return totalPage
 };
 
@@ -186,7 +186,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
         throw new Error(getErrorMessage(err))
     }
 
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return parsedForm.data
 };
 
@@ -310,8 +310,8 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
         throw new Error(getErrorMessage(err))
     }
     const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
-    revalidatePath('/history');
-    revalidatePath('/protected/history');
+    // revalidatePath('/history');
+    // revalidatePath('/protected/history');
     return totalPage
 };
 
@@ -473,8 +473,8 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
         throw new Error(getErrorMessage(err))
     }
 
-    revalidatePath('/history');
-    revalidatePath('/protected/history');
+    // revalidatePath('/history');
+    // revalidatePath('/protected/history');
     return parsedForm.data
 };
 
@@ -533,7 +533,7 @@ export async function createBox(prevState: State, formData: FormData): StateProm
         }
     }
 
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return { 
         message: `Successfully created box ${parsedForm.data.box_uid}` 
     }
@@ -586,7 +586,7 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
         }
     }
 
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return { message: `Successfully updated box ${parsedForm.data.box_uid}` }
 };
 
@@ -629,7 +629,7 @@ export async function deleteBox(box_uid: string): StatePromise {
         }
     }
 
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return { message: `Successfully deleted box ${parsedForm.data.box_uid}` }
 };
 
@@ -965,7 +965,7 @@ export async function shipBox(box_uid: string): StatePromise {
         }
     }
 
-    revalidatePath('/box');
+    // revalidatePath('/box');
     return { message: `Successfully shipped box ${parsedForm.data.box_uid}` }
 };
 
@@ -1016,7 +1016,7 @@ export async function undoShipBox(box_uid: string): StatePromise {
         }
     }
 
-    revalidatePath('/history');
-    revalidatePath('/protected/history');
+    // revalidatePath('/history');
+    // revalidatePath('/protected/history');
     return { message: `Successfully undo ship box ${parsedForm.data.box_uid}` }
 };
