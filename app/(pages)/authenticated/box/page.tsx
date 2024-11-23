@@ -2,7 +2,7 @@ import { deleteBox, readBoxTotalPage, readBoxByPage } from "@/app/_actions/box";
 import Pagination from "@/app/_components/basic/pagination";
 import TableSkeleton from "@/app/_components/basic/skeletons";
 import DataTable from "@/app/_components/data_table";
-import { columns } from "@/app/(pages)/box/columns";
+import { columns } from "@/app/(pages)/authenticated/box/columns";
 import { type TReadBoxSchema } from '@/app/_libs/zod_server';
 import Link from "next/link";
 import { Suspense } from "react";
@@ -13,8 +13,11 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function Box({ searchParams }: { searchParams?: { itemsPerPage?: string, currentPage?: string, query?: string } }) {
-
+export default async function Box(
+    props: { searchParams?: Promise<{ itemsPerPage?: string, currentPage?: string, query?: string }> }
+) {
+    const searchParams = await props.searchParams;
+    
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
     const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;

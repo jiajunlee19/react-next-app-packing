@@ -15,7 +15,10 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function ShippedBox({ searchParams }: { searchParams?: { itemsPerPage?: string, currentPage?: string, query?: string } }) {
+export default async function ShippedBox(
+    props: { searchParams?: Promise<{ itemsPerPage?: string, currentPage?: string, query?: string }> }
+) {
+    const searchParams = await props.searchParams;
 
     const session = await getServerSession(options);
 

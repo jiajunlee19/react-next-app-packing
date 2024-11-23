@@ -8,7 +8,7 @@ import { TReadBoxSchema } from "@/app/_libs/zod_server";
 import { createColumnHelper } from "@tanstack/react-table";
 
 // "[placeholder-id]" will be replaced by "id" for each row in DataTable
-const hrefUpdate = "/box/[box_uid]/tray";
+const hrefUpdate = "/authenticated/box/[box_uid]/tray";
 
 const deleteAction = deleteBox;
 
@@ -26,7 +26,7 @@ export const columns = [
         footer: "ship",
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
-                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsgShip} />}
+                {!!shipAction && <TableActionButton id={row.original.box_uid as string} action={shipAction} redirectLink="/authenticated/box"  icon={<PaperAirplaneIcon className="h-5" />} confirmMsg={confirmMsgShip} />}
             </div>
         ),
     }),
@@ -94,7 +94,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[box_uid]", row.original.box_uid as string)} />}
-                {!!deleteAction && <TableActionButton id={row.original.box_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
+                {!!deleteAction && <TableActionButton id={row.original.box_uid as string} action={deleteAction} redirectLink={"/authenticated/box"} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

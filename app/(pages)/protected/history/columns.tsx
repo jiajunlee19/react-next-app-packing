@@ -20,7 +20,7 @@ export const columns = [
         footer: "undo",
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
-                {!!undoAction && <TableActionButton id={row.original.box_uid as string} action={undoAction} icon={<ArrowLeftOnRectangleIcon className="h-5" />} confirmMsg={confirmMsg} />}
+                {!!undoAction && <TableActionButton id={row.original.box_uid as string} action={undoAction} redirectLink="/protected/history" icon={<ArrowLeftOnRectangleIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),
