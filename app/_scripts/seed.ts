@@ -7,7 +7,7 @@ import prisma from "@/prisma/prisma";
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
 import { getErrorMessage } from "@/app/_libs/error_handler";
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { createLotSchema, createTraySchema, createBoxSchema, createShipdocSchema, createTrayTypeSchema, createBoxTypeSchema } from "@/app/_libs/zod_server";
 
 async function seedUser() {
@@ -31,14 +31,14 @@ async function seedUser() {
             const result = await Promise.all(parsedForm.data.map( async (d) => {
                  pool.request()
                 .input('user_uid', sql.VarChar, d.user_uid)
-                .input('email', sql.VarChar, d.email)
+                .input('username', sql.VarChar, d.username)
                 .input('password', sql.VarChar, await bcrypt.hash(d.password, 10))
                 .input('role', sql.VarChar, d.role)
                 .input('user_created_dt', sql.DateTime, d.user_created_dt)
                 .input('user_updated_dt', sql.DateTime, d.user_updated_dt)
                 .query`INSERT INTO "packing"."user" 
-                        (user_uid, email, password, role, user_created_dt, user_updated_dt)
-                        VALUES (@user_uid, @email, @password, @role, @user_created_dt, @user_updated_dt);
+                        (user_uid, username, password, role, user_created_dt, user_updated_dt)
+                        VALUES (@user_uid, @username, @password, @role, @user_created_dt, @user_updated_dt);
                 `;
             }));
         }

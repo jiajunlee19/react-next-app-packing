@@ -9,8 +9,15 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateBoxType({params}: {params: {box_type_uid: string}}) {
-    
+type UpdateBoxTypeProps = {
+    params: Promise<{
+        box_type_uid: string,
+    }>,
+}
+
+export default async function UpdateBoxType(props: UpdateBoxTypeProps) {
+    const params = await props.params;
+
     const box_type_uid = params.box_type_uid;
 
     let box_type;

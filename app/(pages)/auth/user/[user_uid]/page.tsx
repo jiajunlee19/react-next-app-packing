@@ -6,6 +6,13 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default function UserPage({ params }: { params: {user_uid: string} }) {
+type UserPageProps = {
+    params: Promise<{
+        user_uid: string,
+    }>;
+}
+
+export default async function UserPage(props: UserPageProps) {
+    const params = await props.params;
     return <UserComponent params={params} />
 };

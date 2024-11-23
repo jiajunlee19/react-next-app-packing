@@ -9,8 +9,15 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateShipdoc({params}: {params: {shipdoc_uid: string}}) {
-    
+type UpdateShipdocProps = {
+    params: Promise<{
+        shipdoc_uid: string,
+    }>,
+}
+
+export default async function UpdateShipdoc(props: UpdateShipdocProps) {
+    const params = await props.params;
+
     const shipdoc_uid = params.shipdoc_uid;
 
     let shipdoc;

@@ -19,7 +19,7 @@ export default function SignUpComponent() {
     const callBackUrl = searchParams.get('callbackUrl') || '/';
 
     const formRef = useRef<HTMLFormElement>(null);
-    const emailRef = useRef("");
+    const usernameRef = useRef("");
     const passwordRef = useRef("");
 
     const handleSubmitClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -38,15 +38,15 @@ export default function SignUpComponent() {
         <>
             <h1>Sign Up</h1>
             <form ref={formRef} action={ async (formData) => {
-                        const result = await signUp(emailRef.current, passwordRef.current);
+                        const result = await signUp(usernameRef.current, passwordRef.current);
                         formRef.current?.reset();
                         if (result?.error && result?.message) {
-                            toast.error(result.message);
+                            toast.error(JSON.stringify(result.error));
                         }
                         else if (result?.message) {
                             toast.success(result.message);
-                            await signIn("credentials", {
-                                email: emailRef.current,
+                            await signIn("username", {
+                                username: usernameRef.current,
                                 password: passwordRef.current,
                                 redirect: true,
                                 callbackUrl: callBackUrl,
@@ -54,8 +54,8 @@ export default function SignUpComponent() {
                         }
                     }
                 }>
-                <label htmlFor="email">Email: </label>
-                <input name="email" type="email" placeholder="Enter your email" onChange={(e) => emailRef.current = e.target.value} required formNoValidate />
+                <label htmlFor="username">Username: </label>
+                <input name="username" type="text" placeholder="Enter your username" onChange={(e) => usernameRef.current = e.target.value} required formNoValidate />
                 <label htmlFor="password">Password: </label>
                 <input name="password" type="password" placeholder="Enter your password" onChange={(e) => passwordRef.current = e.target.value} autoComplete="off" required formNoValidate />
                 <SubmitButton buttonClass="btn-ok w-40 mr-4 mt-4" buttonTitle="Sign Up" onButtonClick={handleSubmitClick} submitingButtonTitle="Signing Up" />

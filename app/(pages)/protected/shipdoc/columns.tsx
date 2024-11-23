@@ -66,7 +66,7 @@ export const columns = [
         cell: ({ row }) => (
             <div className="flex gap-1 justify-center align-middle">
                 {!!hrefUpdate && <UpdateButton href={hrefUpdate.replace("[shipdoc_uid]", row.original.shipdoc_uid as string)} />}
-                {!!deleteAction && <TableActionButton id={row.original.shipdoc_uid as string} action={deleteAction} icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
+                {!!deleteAction && <TableActionButton id={row.original.shipdoc_uid as string} action={deleteAction} redirectLink="/protected/shipdoc" icon={<TrashIcon className="h-5" />} confirmMsg={confirmMsg} />}
             </div>
         ),
     }),

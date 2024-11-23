@@ -1,5 +1,5 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { parsedEnv } from './zod_env';
+import { parsedEnv } from '@/app/_libs/zod_env';
 
 type TSignInOption = {
     expiresIn?: string | number,

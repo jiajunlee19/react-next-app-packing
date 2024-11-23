@@ -17,34 +17,34 @@ export default function Header() {
     ];
 
     const midNavLinks = [
-        { name: "History", href: "/history", icon: "" },
-        { name: "AdminList", href: "/adminList", icon: "" },
+        { name: "History", href: "/authenticated/history", icon: "" },
+        { name: "AdminList", href: "/authenticated/adminList", icon: "" },
     ];
 
     const rightNavLinksA = [
-        { name: session?.user.email, href: "/auth/user/" + session?.user.user_uid, icon: "" },
+        { name: session?.user.username, href: "/auth/user/" + session?.user.user_uid, icon: "" },
         { name: "Sign Out", href: "/auth/signOut", icon: "" },
     ];
 
     const rightNavLinksB = [
         { name: "Sign In", href: "/auth/signIn", icon: "" },
-        { name: "Sign Up", href: "/auth/signUp", icon: "" },
+        // { name: "Sign Up", href: "/auth/signUp", icon: "" },
     ];
 
     const actionNavLinks = [
-        { name: "Manage Box", href: "/box", icon: "" },
+        { name: "Manage Box", href: "/authenticated/box", icon: "" },
     ];
 
     const actionNavLinksProtected = [
         { name: "Manage Box Type", href: "/protected/box_type", icon: "" },
         { name: "Manage Tray Type", href: "/protected/tray_type", icon: "" },
         { name: "Manage Shipdoc", href: "/protected/shipdoc", icon: "" },
-        { name: "Update User Role", href: "/protected/auth/updateRoleByEmail", icon: "" },
+        { name: "Update User Role", href: "/protected/auth/updateRoleByUsername", icon: "" },
     ];
 
     const actionNavLinksRestricted = [
         { name: "User List", href: "/restricted/auth/user", icon: "" },
-        { name: "Update Role by Email", href: "/restricted/auth/updateRoleByEmail", icon: "" },
+        { name: "Update Role by Username", href: "/restricted/auth/updateRoleByUsername", icon: "" },
     ];
 
     const pathname = usePathname();

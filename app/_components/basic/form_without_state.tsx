@@ -5,8 +5,8 @@ import SubmitButton from "@/app/_components/basic/button_submit";
 import { type TInputType, type TRowData, type State, type StatePromise, type TFormMode } from "@/app/_libs/types";
 import { toast } from "react-hot-toast";
 import { getString } from "@/app/_libs/toString_handler";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 type FormWithoutStateProps = {
     formTitle: string,
@@ -127,7 +127,7 @@ export default function FormWithoutState( {formTitle, inputType, rowData, select
         <form ref={formRef} className="my-[2%] mx-[2%]" action={ async (formData) => {
             const result = await formAction(formData);
             if (result?.error && result?.message) {
-                toast.error(result.message);
+                toast.error(JSON.stringify(result.error));
             }
             else if (result?.message) {
                 toast.success(result.message);

@@ -11,7 +11,7 @@ type TableProps = {
     data: TRowData[],
 };
 
-export default function Table({ columns, data }: TableProps) {
+export default function BaseTable({ columns, data }: TableProps) {
 
     const memoColumns = useMemo(() => columns, [columns]);
     const memoData = useMemo(() => data, [data]);
@@ -62,8 +62,8 @@ export default function Table({ columns, data }: TableProps) {
         });
 
         return (
-            <th onClick={header.column.getToggleSortingHandler()} ref={dropRef} colSpan={header.colSpan} style={{opacity: isDragging ? 0.5 : 1}}>
-                <div ref={previewRef}>
+            <th onClick={header.column.getToggleSortingHandler()} ref={dropRef as any} colSpan={header.colSpan} style={{opacity: isDragging ? 0.5 : 1}}>
+                <div ref={previewRef as any}>
                     {header.isPlaceholder ? null : 
                         <>
                             {flexRender(
@@ -75,7 +75,7 @@ export default function Table({ columns, data }: TableProps) {
                             }
                         </>
                     }
-                    <button className="mx-2 px-1 py-0" ref={dragRef}>🟰</button>
+                    <button className="mx-2 px-1 py-0" ref={dragRef as any}>🟰</button>
                 </div>
             </th>
         );
