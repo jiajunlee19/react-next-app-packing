@@ -9,8 +9,17 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateLot({params}: {params: {box_uid: string, tray_uid: string, lot_uid: string}}) {
-    
+type UpdateLotProps = {
+    params: Promise<{
+        box_uid: string, 
+        tray_uid: string, 
+        lot_uid: string,
+    }>,
+}
+
+export default async function UpdateLot(props : UpdateLotProps) {
+    const params = await props.params;
+
     const {box_uid, tray_uid, lot_uid} = params;
 
     let lot;

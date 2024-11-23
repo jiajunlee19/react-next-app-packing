@@ -9,8 +9,15 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function UpdateTrayType({params}: {params: {tray_type_uid: string}}) {
-    
+type UpdateTrayTypeProps = {
+    params: Promise<{
+        tray_type_uid: string,
+    }>,
+}
+
+export default async function UpdateTrayType(props: UpdateTrayTypeProps) {
+    const params = await props.params;
+
     const tray_type_uid = params.tray_type_uid;
 
     let tray_type;

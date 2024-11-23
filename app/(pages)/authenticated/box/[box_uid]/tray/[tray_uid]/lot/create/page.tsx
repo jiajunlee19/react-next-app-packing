@@ -8,8 +8,16 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function CreateLot({ params }: { params: { box_uid: string, tray_uid: string } }) {
-    
+type CreateLotProps = {
+    params: Promise<{
+        box_uid: string, 
+        tray_uid: string,
+    }>,
+}
+
+export default async function CreateLot(props: CreateLotProps) {
+    const params = await props.params;
+
     const box_uid = params.box_uid;
     const tray_uid = params.tray_uid;
 

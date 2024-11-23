@@ -9,8 +9,15 @@ export const metadata: Metadata = {
     description: 'Developed by jiajunlee',
 };
 
-export default async function CreateTray({ params }: { params: { box_uid: string } }) {
-    
+type CreateTrayProps = {
+    params: Promise<{
+        box_uid: string,
+    }>,
+}
+
+export default async function CreateTray(props: CreateTrayProps) {
+    const params = await props.params;
+
     const box_uid = params.box_uid;
 
     const [trayType] = await Promise.all([

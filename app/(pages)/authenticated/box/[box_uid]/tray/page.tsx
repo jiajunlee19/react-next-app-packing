@@ -15,15 +15,17 @@ export const metadata: Metadata = {
 };
 
 type TrayProps =  { 
-    params: {box_uid: string}, 
-    searchParams?: {
+    params: Promise<{box_uid: string}>, 
+    searchParams?: Promise<{
         itemsPerPage?: string, 
         currentPage?: string, 
         query?: string,
-    },
+    }>,
 };
 
-export default async function Tray({ params, searchParams }: TrayProps) {
+export default async function Tray(props : TrayProps) {
+    const params = await props.params;
+    const searchParams = await props.searchParams;
 
     const box_uid = params.box_uid;
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;

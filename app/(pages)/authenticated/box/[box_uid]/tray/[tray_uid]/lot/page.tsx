@@ -15,18 +15,20 @@ export const metadata: Metadata = {
 };
 
 type LotProps =  { 
-    params: {
+    params: Promise<{
         box_uid: string,
         tray_uid: string,
-    }, 
-    searchParams?: {
+    }>, 
+    searchParams?: Promise<{
         itemsPerPage?: string, 
         currentPage?: string, 
         query?: string,
-    },
+    }>,
 };
 
-export default async function Lot({ params, searchParams }: LotProps) {
+export default async function Lot(props: LotProps) {
+    const params = await props.params;
+    const searchParams = await props.searchParams;
 
     const box_uid = params.box_uid;
     const tray_uid = params.tray_uid;
