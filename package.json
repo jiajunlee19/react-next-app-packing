@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -e .env -- next dev --turbopack",
-    "build": "npx prisma generate && (npx prisma db push || echo \"[warn] Skipping prisma db push due to unexpected errors !\") && dotenv -e .env -- next build",
+    "build": "npx prisma generate && npx prisma migrate deploy && dotenv -e .env -- next build",
     "start": "dotenv -e .env -- next start",
     "lint": "next lint",
     "seed": "dotenv -e .env -- npx esrun ./app/_scripts/seed.ts",
