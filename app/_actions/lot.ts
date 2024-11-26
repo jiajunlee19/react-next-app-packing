@@ -1,9 +1,14 @@
 'use server'
 
+import { rateLimitByIP, rateLimitByUid } from "@/app/_libs/rate_limit";
+import { getServerSession } from "next-auth/next";
+import { options } from "@/app/_libs/nextAuth_options";
+import { redirect } from "next/navigation";
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readLotSchema, createLotSchema, updateLotSchema, deleteLotSchema, TReadLotSchema } from "@/app/_libs/zod_server";
+import { readLotSchema, createLotSchema, updateLotSchema, deleteLotSchema, TReadLotSchema, deleteTraySchema } from "@/app/_libs/zod_server";
+import { itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -16,9 +21,31 @@ import { readBoxStatusByLotUid, readBoxStatusByTrayUid } from '@/app/_actions/bo
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readLotTotalPage(itemsPerPage: number, query?: string, tray_uid?: string) {
+export async function readLotTotalPage(itemsPerPage: number | unknown, query?: string | unknown, tray_uid?: string | unknown) {
     noStore();
-    const QUERY = query ? `${query || ''}%` : '%';
+    
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -35,14 +62,14 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
                     },
                 },
                 where: {
-                    tray_uid: tray_uid,
-                    ...(query &&
+                    tray_uid: parsedInput.data.tray_uid,
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['lot_uid', 'lot_id'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -58,7 +85,7 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
@@ -76,12 +103,12 @@ export async function readLotTotalPage(itemsPerPage: number, query?: string, tra
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/authenticated/box/[box_uid]/tray/[tray_uid]/lot', 'page');
     return totalPage
 };
 
-export async function readLotByPage(itemsPerPage: number, currentPage: number, query?: string, tray_uid?: string) {
+export async function readLotByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string, tray_uid?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -91,8 +118,30 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
     // console.log("ok")
     // <dev only>
 
-    const OFFSET = (currentPage - 1) * itemsPerPage;
-    const QUERY = query ? `${query || ''}%` : '%';
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -109,14 +158,14 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
                     },
                 },
                 where: {
-                    tray_uid: tray_uid,
-                    ...(query &&
+                    tray_uid: parsedInput.data.tray_uid,
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['lot_uid', 'lot_id'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -124,7 +173,7 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
                         }),
                 },
                 skip: OFFSET,
-                take: itemsPerPage,
+                take: parsedItemsPerPage,
             });
             const flattenResult = result.map((row) => {
                 return flattenNestedObject(row)
@@ -134,9 +183,9 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
                                     FROM "packing"."lot" l
@@ -162,12 +211,20 @@ export async function readLotByPage(itemsPerPage: number, currentPage: number, q
     return parsedForm.data
 };
 
-export async function createLot(prevState: State, formData: FormData): StatePromise {
+export async function createLot(prevState: State | unknown, formData: FormData | unknown): StatePromise {
     
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
+
     const now = new Date();
 
+    const tray_uid = formData.get('tray_uid');
     const [{box_status}] = await Promise.all ([
-        await readBoxStatusByTrayUid(formData.get('tray_uid') as string),
+        await readBoxStatusByTrayUid(typeof tray_uid == "string" ? tray_uid : undefined),
     ]);
 
     if (box_status !== 'active') {
@@ -177,8 +234,10 @@ export async function createLot(prevState: State, formData: FormData): StateProm
         }
     };
 
+    const tray_id = formData.get('tray_id');
+    const lot_id = formData.get('lot_id');
     const parsedForm = createLotSchema.safeParse({
-        lot_uid: uuidv5((formData.get('tray_id') as string + formData.get('lot_id') as string + now.toString()), UUID5_SECRET),
+        lot_uid: (typeof tray_id == "string" && typeof lot_id == "string") ? uuidv5(tray_id + lot_id + now.toString(), UUID5_SECRET) : undefined,
         tray_uid: formData.get('tray_uid'),
         lot_id: formData.get('lot_id'),
         lot_qty: formData.get('lot_qty'),
@@ -193,11 +252,27 @@ export async function createLot(prevState: State, formData: FormData): StateProm
         };
     };
 
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
+
     try {
 
         // Return error if exceed tray max drive
         const {tray_current_drive, tray_max_drive} = await readTrayById(parsedForm.data.tray_uid);
-        if (tray_current_drive && tray_max_drive && (tray_current_drive + parsedForm.data.lot_qty) > tray_max_drive) {
+        if (!tray_current_drive || !tray_max_drive || (tray_current_drive + parsedForm.data.lot_qty) > tray_max_drive) {
             return { 
                 error: {error: ["Exceeded max drive qty in the tray, failed to create new lot !"]},
                 message: "Exceeded max drive qty in the tray, failed to create new lot !"
@@ -238,12 +313,20 @@ export async function createLot(prevState: State, formData: FormData): StateProm
 };
 
 
-export async function updateLot(prevState: State, formData: FormData): StatePromise {
+export async function updateLot(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
+    const tray_uid = formData.get('tray_uid');
     const [{box_status}] = await Promise.all ([
-        await readBoxStatusByTrayUid(formData.get('tray_uid') as string),
+        await readBoxStatusByTrayUid(typeof tray_uid == "string" ? tray_uid : undefined),
     ]);
 
     if (box_status !== 'active') {
@@ -265,6 +348,22 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
             message: "Invalid input provided, failed to update lot!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -300,18 +399,7 @@ export async function updateLot(prevState: State, formData: FormData): StateProm
 };
 
 
-export async function deleteLot(lot_uid: string): StatePromise {
-
-    const [{box_status}] = await Promise.all ([
-        await readBoxStatusByLotUid(lot_uid),
-    ]);
-
-    if (box_status !== 'active') {
-        return { 
-            error: {error: ["Given box is not active. Failed to delete Lot !"]},
-            message: "Given box is not active. Failed to delete Lot !"
-        }
-    };
+export async function deleteLot(lot_uid: string | unknown): StatePromise {
 
     const parsedForm = deleteLotSchema.safeParse({
         lot_uid: lot_uid,
@@ -323,6 +411,33 @@ export async function deleteLot(lot_uid: string): StatePromise {
             message: "Invalid input provided, failed to delete lot!"
         };
     };
+
+    const [{box_status}] = await Promise.all ([
+        await readBoxStatusByLotUid(parsedForm.data.lot_uid),
+    ]);
+
+    if (box_status !== 'active') {
+        return { 
+            error: {error: ["Given box is not active. Failed to delete Lot !"]},
+            message: "Given box is not active. Failed to delete Lot !"
+        }
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -353,14 +468,33 @@ export async function deleteLot(lot_uid: string): StatePromise {
     return { message: `Successfully deleted lot ${parsedForm.data.lot_uid}` }
 };
 
-export async function readLotById(lot_uid: string) {
+export async function readLotById(lot_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteLotSchema.safeParse({
+        lot_uid: lot_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.lot.findUnique({
                 where: {
-                    lot_uid: lot_uid,
+                    lot_uid: parsedInput.data.lot_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -369,7 +503,7 @@ export async function readLotById(lot_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('lot_uid', sql.VarChar, lot_uid)
+                            .input('lot_uid', sql.VarChar, parsedInput.data.lot_uid)
                             .query`SELECT lot_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt 
                                     FROM "packing"."lot"
                                     WHERE lot_uid = @lot_uid;

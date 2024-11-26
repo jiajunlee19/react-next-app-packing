@@ -1,9 +1,14 @@
 'use server'
 
+import { rateLimitByIP, rateLimitByUid } from "@/app/_libs/rate_limit";
+import { getServerSession } from "next-auth/next";
+import { options } from "@/app/_libs/nextAuth_options";
+import { redirect } from "next/navigation";
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readShipdocSchema, createShipdocSchema, updateShipdocSchema, deleteShipdocSchema, TReadShipdocSchema } from "@/app/_libs/zod_server";
+import { readShipdocSchema, createShipdocSchema, updateShipdocSchema, deleteShipdocSchema, TReadShipdocSchema, shipdocNumberSchema } from "@/app/_libs/zod_server";
+import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -14,21 +19,35 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readShipdocTotalPage(itemsPerPage: number, query?: string) {
+export async function readShipdocTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
+
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.shipdoc.findMany({
                 where: {
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['shipdoc_uid', 'shipdoc_number', 'shipdoc_contact'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -59,12 +78,12 @@ export async function readShipdocTotalPage(itemsPerPage: number, query?: string)
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/protected/shipdoc');
     return totalPage
 };
 
-export async function readShipdocByPage(itemsPerPage: number, currentPage: number, query?: string) {
+export async function readShipdocByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -74,20 +93,34 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
     // console.log("ok")
     // <dev only>
 
-    const OFFSET = (currentPage - 1) * itemsPerPage;
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     const QUERY = query ? `${query || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.shipdoc.findMany({
                 where: {
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['shipdoc_uid', 'shipdoc_number', 'shipdoc_contact'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -95,7 +128,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
                         }),
                 },
                 skip: OFFSET,
-                take: itemsPerPage,
+                take: parsedItemsPerPage,
             });
             const flattenResult = result.map((row) => {
                 return flattenNestedObject(row)
@@ -106,7 +139,7 @@ export async function readShipdocByPage(itemsPerPage: number, currentPage: numbe
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
@@ -140,6 +173,16 @@ export async function readShipdoc() {
     // console.log("ok")
     // <dev only>
 
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -172,7 +215,7 @@ export async function readShipdoc() {
     return parsedForm.data
 };
 
-export async function readShipdocUid(shipdoc_number: string) {
+export async function readShipdocUid(shipdoc_number: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -182,12 +225,30 @@ export async function readShipdocUid(shipdoc_number: string) {
     // console.log("ok")
     // <dev only>
 
+    const parsedInput = shipdocNumberSchema.safeParse({
+        shipdoc_number: shipdoc_number,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.shipdoc.findFirst({
                 where: {
-                    shipdoc_number: shipdoc_number,
+                    shipdoc_number: parsedInput.data.shipdoc_number,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -196,7 +257,7 @@ export async function readShipdocUid(shipdoc_number: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('shipdoc_number', sql.VarChar, shipdoc_number)
+                            .input('shipdoc_number', sql.VarChar, parsedInput.data.shipdoc_number)
                             .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE shipdoc_number = @shipdoc_number;
@@ -217,12 +278,20 @@ export async function readShipdocUid(shipdoc_number: string) {
     return parsedForm.data
 };
 
-export async function createShipdoc(prevState: State, formData: FormData): StatePromise {
+export async function createShipdoc(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
+    const shipdoc_number = formData.get('shipdoc_number');
     const parsedForm = createShipdocSchema.safeParse({
-        shipdoc_uid: uuidv5(formData.get('shipdoc_number') as string, UUID5_SECRET),
+        shipdoc_uid: (typeof shipdoc_number == 'string') ? uuidv5(shipdoc_number, UUID5_SECRET) : undefined,
         shipdoc_number: formData.get('shipdoc_number'),
         shipdoc_contact: formData.get('shipdoc_contact'),
         shipdoc_created_dt: now,
@@ -235,6 +304,22 @@ export async function createShipdoc(prevState: State, formData: FormData): State
             message: "Invalid input provided, failed to create shipdoc!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -271,7 +356,14 @@ export async function createShipdoc(prevState: State, formData: FormData): State
 };
 
 
-export async function updateShipdoc(prevState: State, formData: FormData): StatePromise {
+export async function updateShipdoc(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
@@ -287,6 +379,22 @@ export async function updateShipdoc(prevState: State, formData: FormData): State
             message: "Invalid input provided, failed to update shipdoc!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -322,7 +430,7 @@ export async function updateShipdoc(prevState: State, formData: FormData): State
 };
 
 
-export async function deleteShipdoc(shipdoc_uid: string): StatePromise {
+export async function deleteShipdoc(shipdoc_uid: string | unknown): StatePromise {
 
     const parsedForm = deleteShipdocSchema.safeParse({
         shipdoc_uid: shipdoc_uid,
@@ -334,6 +442,22 @@ export async function deleteShipdoc(shipdoc_uid: string): StatePromise {
             message: "Invalid input provided, failed to delete shipdoc!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -364,14 +488,33 @@ export async function deleteShipdoc(shipdoc_uid: string): StatePromise {
     return { message: `Successfully deleted shipdoc ${parsedForm.data.shipdoc_uid}` }
 };
 
-export async function readShipdocById(shipdoc_uid: string) {
+export async function readShipdocById(shipdoc_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteShipdocSchema.safeParse({
+        shipdoc_uid: shipdoc_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.shipdoc.findUnique({
                 where: {
-                    shipdoc_uid: shipdoc_uid,
+                    shipdoc_uid: parsedInput.data.shipdoc_uid,
                 }
             });
             const flattenResult = flattenNestedObject(result);
@@ -380,6 +523,7 @@ export async function readShipdocById(shipdoc_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
+                            .input('shipdoc_uid', sql.VarChar, parsedInput.data.shipdoc_uid)
                             .query`SELECT shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt 
                                     FROM "packing"."shipdoc"
                                     WHERE shipdoc_uid = @shipdoc_uid;

@@ -1,9 +1,14 @@
 'use server'
 
+import { rateLimitByIP, rateLimitByUid } from "@/app/_libs/rate_limit";
+import { getServerSession } from "next-auth/next";
+import { options } from "@/app/_libs/nextAuth_options";
+import { redirect } from "next/navigation";
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readTraySchema, createTraySchema, updateTraySchema, deleteTraySchema, TReadTraySchema } from "@/app/_libs/zod_server";
+import { readTraySchema, createTraySchema, updateTraySchema, deleteTraySchema, TReadTraySchema, deleteBoxSchema } from "@/app/_libs/zod_server";
+import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -16,9 +21,31 @@ import { readBoxById, readBoxStatusByBoxUid, readBoxStatusByTrayUid } from '@/ap
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readTrayTotalPage(itemsPerPage: number, query?: string, box_uid?: string) {
+export async function readTrayTotalPage(itemsPerPage: number | unknown, query?: string | unknown, box_uid?: string | unknown) {
     noStore();
-    const QUERY = query ? `${query || ''}%` : '%';
+
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -32,14 +59,14 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
                     },
                 },
                 where: {
-                    box_uid: box_uid,
-                    ...(query &&
+                    box_uid: parsedInput.data.box_uid,
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['tray_uid', 'tray_type_uid'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -47,7 +74,7 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
                                     return {
                                         fk_tray_type_uid: {
                                             [e]: {
-                                                search: `${query}:*`,
+                                                search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                             },
                                         },
                                     };
@@ -64,7 +91,7 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('box_uid', sql.VarChar, box_uid)
+                            .input('box_uid', sql.VarChar, parsedInput.data.box_uid)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT t.box_uid, t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
@@ -85,12 +112,12 @@ export async function readTrayTotalPage(itemsPerPage: number, query?: string, bo
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/authenticated/box/[box_uid]/tray', 'page');
     return totalPage
 };
 
-export async function readTrayByPage(itemsPerPage: number, currentPage: number, query?: string, box_uid?: string) {
+export async function readTrayByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown, box_uid?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -100,8 +127,30 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
     // console.log("ok")
     // <dev only>
 
-    const OFFSET = (currentPage - 1) * itemsPerPage;
-    const QUERY = query ? `${query || ''}%` : '%';
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -117,13 +166,13 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
                                 FROM "packing"."tray" t
                                 INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN l ON t.tray_uid = l.tray_uid
-                                WHERE t.box_uid = UUID(${box_uid})
+                                WHERE t.box_uid = UUID(${parsedInput.data.box_uid})
                                 AND (t.tray_uid||'' like ${QUERY}
                                     OR tt.tray_part_number like ${QUERY}
                                 )
                                 ORDER BY t.tray_updated_dt desc
                                 OFFSET ${OFFSET} ROWS
-                                FETCH NEXT ${itemsPerPage} ROWS ONLY;
+                                FETCH NEXT ${parsedItemsPerPage} ROWS ONLY;
                             `;
             parsedForm = readTraySchema.array().safeParse(result);
         }
@@ -132,7 +181,7 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, box_uid)
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`
                                     WITH l AS (
@@ -169,13 +218,23 @@ export async function readTrayByPage(itemsPerPage: number, currentPage: number, 
     return parsedForm.data
 };
 
-export async function createTray(prevState: State, formData: FormData): StatePromise {
+export async function createTray(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
+    const tray_part_number = formData.get('tray_part_number');
+    const box_uid = formData.get('box_uid');
+
     const [{tray_type_uid}, {box_status}] = await Promise.all ([
-        await readTrayTypeUid( formData.get('tray_part_number') as string ),
-        await readBoxStatusByBoxUid(formData.get('box_uid') as string),
+        await readTrayTypeUid(typeof tray_part_number == "string" ? tray_part_number : undefined ),
+        await readBoxStatusByBoxUid(typeof box_uid == "string" ? box_uid : undefined),
     ]);
 
     if (box_status !== 'active') {
@@ -186,7 +245,7 @@ export async function createTray(prevState: State, formData: FormData): StatePro
     };
 
     const parsedForm = createTraySchema.safeParse({
-        tray_uid: uuidv5((tray_type_uid as string + formData.get('box_uid') as string + now.toString()), UUID5_SECRET),
+        tray_uid: (typeof tray_type_uid == "string" && typeof box_uid == "string") ? uuidv5(tray_type_uid + box_uid + now.toString(), UUID5_SECRET) : undefined,
         box_uid: formData.get('box_uid'),
         tray_type_uid: tray_type_uid,
         tray_created_dt: now,
@@ -200,11 +259,27 @@ export async function createTray(prevState: State, formData: FormData): StatePro
         };
     };
 
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
+
     try {
 
         // Return error if exceed box max tray
         const {box_current_tray, box_max_tray} = await readBoxById(parsedForm.data.box_uid);
-        if (box_current_tray && box_max_tray && (box_current_tray + 1) > box_max_tray) {
+        if (!box_current_tray || !box_max_tray || (box_current_tray + 1) > box_max_tray) {
             return { 
                 error: {error: ["Exceeded max tray count in the box, failed to create new tray !"]},
                 message: "Exceeded max tray count in the box, failed to create new tray !"
@@ -244,12 +319,20 @@ export async function createTray(prevState: State, formData: FormData): StatePro
 };
 
 
-export async function updateTray(tray_uid: string): StatePromise {
+export async function updateTray(tray_uid: string | unknown): StatePromise {
+
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
 
     const now = new Date();
 
     const [{box_status}] = await Promise.all ([
-        await readBoxStatusByBoxUid(tray_uid),
+        await readBoxStatusByTrayUid(parsedInput.data.tray_uid),
     ]);
 
     if (box_status !== 'active') {
@@ -270,6 +353,22 @@ export async function updateTray(tray_uid: string): StatePromise {
             message: "Invalid input provided, failed to update tray!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -304,10 +403,18 @@ export async function updateTray(tray_uid: string): StatePromise {
 };
 
 
-export async function deleteTray(tray_uid: string): StatePromise {
+export async function deleteTray(tray_uid: string | unknown): StatePromise {
+    
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
     
     const [{box_status}] = await Promise.all ([
-        await readBoxStatusByTrayUid(tray_uid),
+        await readBoxStatusByTrayUid(parsedInput.data.tray_uid),
     ]);
 
     if (box_status !== 'active') {
@@ -327,6 +434,22 @@ export async function deleteTray(tray_uid: string): StatePromise {
             message: "Invalid input provided, failed to delete tray!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -357,8 +480,27 @@ export async function deleteTray(tray_uid: string): StatePromise {
     return { message: `Successfully deleted tray ${parsedForm.data.tray_uid}` }
 };
 
-export async function readTrayById(tray_uid: string) {
+export async function readTrayById(tray_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -366,7 +508,7 @@ export async function readTrayById(tray_uid: string) {
                                 WITH gl AS (
                                     SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
                                     FROM "packing"."lot" 
-                                    WHERE tray_uid = UUID(${tray_uid})
+                                    WHERE tray_uid = UUID(${parsedInput.data.tray_uid})
                                     GROUP BY tray_uid
                                 )
                                 SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
@@ -375,14 +517,14 @@ export async function readTrayById(tray_uid: string) {
                                 FROM "packing"."tray" t
                                 INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN gl ON t.tray_uid = gl.tray_uid
-                                WHERE t.tray_uid = UUID(${tray_uid});
+                                WHERE t.tray_uid = UUID(${parsedInput.data.tray_uid});
                             `;
             parsedForm = readTraySchema.safeParse(result[0]);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .query`
                                     WITH gl AS (
                                         SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive

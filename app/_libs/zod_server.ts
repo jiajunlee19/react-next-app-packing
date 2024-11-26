@@ -28,6 +28,10 @@ export const deleteShipdocSchema = createShipdocSchema.pick({
     shipdoc_uid: true,
 });
 
+export const shipdocNumberSchema = createShipdocSchema.pick({
+    shipdoc_number: true,
+});
+
 
 
 export const createLotSchema = z.object({
@@ -150,6 +154,10 @@ export const updateTrayTypeSchema = createTrayTypeSchema.pick({
 
 export const deleteTrayTypeSchema = createTrayTypeSchema.pick({
     tray_type_uid: true,
+});
+
+export const trayPartNumberSchema = createTrayTypeSchema.pick({
+    tray_part_number: true,
 });
 
 
