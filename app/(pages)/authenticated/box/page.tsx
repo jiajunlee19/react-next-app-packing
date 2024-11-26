@@ -20,7 +20,7 @@ export default async function Box(
     
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
+    const query = searchParams?.query || undefined;
 
     const totalPage = await readBoxTotalPage(itemsPerPage, query);
 
