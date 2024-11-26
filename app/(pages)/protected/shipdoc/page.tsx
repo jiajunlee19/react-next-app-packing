@@ -19,7 +19,7 @@ export default async function Shipdoc(
     
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
+    const query = searchParams?.query || undefined;
 
     const totalPage = await readShipdocTotalPage(itemsPerPage, query);
 

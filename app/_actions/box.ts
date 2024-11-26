@@ -1,9 +1,14 @@
 'use server'
 
+import { rateLimitByIP, rateLimitByUid } from "@/app/_libs/rate_limit";
+import { getServerSession } from "next-auth/next";
+import { options } from "@/app/_libs/nextAuth_options";
+import { redirect } from "next/navigation";
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema, checkBoxShippableSchema, shippedBoxHistorySchema } from "@/app/_libs/zod_server";
+import { readBoxSchema, createBoxSchema, updateBoxSchema, deleteBoxSchema, TReadBoxSchema, shipBoxSchema, checkBoxShippableSchema, shippedBoxHistorySchema, deleteTraySchema, deleteLotSchema } from "@/app/_libs/zod_server";
+import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -16,9 +21,23 @@ import { readShipdocUid } from '@/app/_actions/shipdoc';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
+export async function readBoxTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
-    const QUERY = query ? `${query || ''}%` : '%';
+
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -39,13 +58,13 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
                 },
                 where: {
                     box_status: 'active',
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['box_uid', 'box_type_uid', 'shipdoc_uid'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -53,7 +72,7 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
                                     return {
                                         fk_box_type_uid: {
                                             [e]: {
-                                                search: `${query}:*`,
+                                                search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                             },
                                         },
                                     };
@@ -62,7 +81,7 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
                                     return {
                                         fk_shipdoc_uid: {
                                             [e]: {
-                                                search: `${query}:*`,
+                                                search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                             },
                                         },
                                     };
@@ -102,12 +121,12 @@ export async function readBoxTotalPage(itemsPerPage: number, query?: string) {
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/authenticated/box');
     return totalPage
 };
 
-export async function readBoxByPage(itemsPerPage: number, currentPage: number, query?: string) {
+export async function readBoxByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -117,8 +136,22 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
     // console.log("ok")
     // <dev only>
 
-    const OFFSET = (currentPage - 1) * itemsPerPage;
-    const QUERY = query ? `${query || ''}%` : '%';
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -143,7 +176,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
                                 )
                                 ORDER BY b.box_updated_dt desc
                                 OFFSET ${OFFSET} ROWS
-                                FETCH NEXT ${itemsPerPage} ROWS ONLY;
+                                FETCH NEXT ${parsedItemsPerPage} ROWS ONLY;
                             `;
             parsedForm = readBoxSchema.array().safeParse(result);
         }
@@ -151,7 +184,7 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`
                                     WITH gt AS (
@@ -191,9 +224,23 @@ export async function readBoxByPage(itemsPerPage: number, currentPage: number, q
 };
 
 
-export async function readShippedBoxTotalPage(itemsPerPage: number, query?: string) {
+export async function readShippedBoxTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
-    const QUERY = query ? `${query || ''}%` : '%';
+
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -227,13 +274,13 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
                             box_status: 'shipped',
                         },
                     },
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['lot_id'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -241,7 +288,7 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
                                     return {
                                         fk_tray_uid: {
                                             [e]: {
-                                                search: `${query}:*`,
+                                                search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                             },
                                         },
                                     };
@@ -251,7 +298,7 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
                                         fk_tray_uid: {
                                             fk_box_uid: {
                                                 [e]: {
-                                                    search: `${query}:*`,
+                                                    search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                                 },
                                             },
                                         },
@@ -263,7 +310,7 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
                                             fk_box_uid: {
                                                 fk_shipdoc_uid: {
                                                     [e]: {
-                                                        search: `${query}:*`,
+                                                        search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                                     },
                                                 },
                                             },
@@ -309,14 +356,14 @@ export async function readShippedBoxTotalPage(itemsPerPage: number, query?: stri
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/history');
     // revalidatePath('/protected/history');
     return totalPage
 };
 
 
-export async function readShippedBoxByPage(itemsPerPage: number, currentPage: number, query?: string) {
+export async function readShippedBoxByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -326,8 +373,22 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
     // console.log("ok")
     // <dev only>
 
-    const OFFSET = (currentPage - 1) * itemsPerPage;
-    const QUERY = query ? `${query || ''}%` : '%';
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -385,13 +446,13 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                             box_status: 'shipped',
                         },
                     },
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['lot_id'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -399,7 +460,7 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                                     return {
                                         fk_tray_uid: {
                                             [e]: {
-                                                search: `${query}:*`,
+                                                search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                             },
                                         },
                                     };
@@ -409,7 +470,7 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                                         fk_tray_uid: {
                                             fk_box_uid: {
                                                 [e]: {
-                                                    search: `${query}:*`,
+                                                    search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                                 },
                                             },
                                         },
@@ -421,7 +482,7 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
                                             fk_box_uid: {
                                                 fk_shipdoc_uid: {
                                                     [e]: {
-                                                        search: `${query}:*`,
+                                                        search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                                     },
                                                 },
                                             },
@@ -441,7 +502,7 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`
                                     SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
@@ -479,17 +540,26 @@ export async function readShippedBoxByPage(itemsPerPage: number, currentPage: nu
 };
 
 
-export async function createBox(prevState: State, formData: FormData): StatePromise {
+export async function createBox(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
+    const box_part_number = formData.get('box_part_number');
+    const shipdoc_number = formData.get('shipdoc_number');
     const [{box_type_uid}, {shipdoc_uid}] = await Promise.all ([
-        await readBoxTypeUid( formData.get('box_part_number') as string ),
-        await readShipdocUid( formData.get('shipdoc_number') as string ),
+        await readBoxTypeUid(typeof box_part_number == "string" ? box_part_number : undefined),
+        await readShipdocUid(typeof shipdoc_number == "string" ? shipdoc_number : undefined),
     ]);
 
     const parsedForm = createBoxSchema.safeParse({
-        box_uid: uuidv5((box_type_uid as string + shipdoc_uid as string + now.toString()), UUID5_SECRET),
+        box_uid: (typeof box_type_uid == "string" && typeof shipdoc_uid == "string") ? uuidv5(box_type_uid + shipdoc_uid + now.toString(), UUID5_SECRET) : undefined,
         box_type_uid: box_type_uid,
         shipdoc_uid: shipdoc_uid,
         box_status: 'active',
@@ -503,6 +573,22 @@ export async function createBox(prevState: State, formData: FormData): StateProm
             message: "Invalid input provided, failed to create box!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -540,7 +626,14 @@ export async function createBox(prevState: State, formData: FormData): StateProm
 };
 
 
-export async function updateBox(prevState: State, formData: FormData): StatePromise {
+export async function updateBox(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
@@ -556,6 +649,22 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
             message: "Invalid input provided, failed to update box!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -591,7 +700,7 @@ export async function updateBox(prevState: State, formData: FormData): StateProm
 };
 
 
-export async function deleteBox(box_uid: string): StatePromise {
+export async function deleteBox(box_uid: string | unknown): StatePromise {
 
     const parsedForm = deleteBoxSchema.safeParse({
         box_uid: box_uid,
@@ -603,6 +712,22 @@ export async function deleteBox(box_uid: string): StatePromise {
             message: "Invalid input provided, failed to delete box!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -634,8 +759,27 @@ export async function deleteBox(box_uid: string): StatePromise {
 };
 
 
-export async function readBoxById(box_uid: string) {
+export async function readBoxById(box_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -643,7 +787,7 @@ export async function readBoxById(box_uid: string) {
                                 WITH gt AS (
                                     SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                     FROM "packing"."tray"
-                                    WHERE box_uid = UUID(${box_uid})
+                                    WHERE box_uid = UUID(${parsedInput.data.box_uid})
                                     GROUP BY box_uid
                                 )
                                 SELECT b.box_uid, b.box_type_uid, b.box_status, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
@@ -652,14 +796,14 @@ export async function readBoxById(box_uid: string) {
                                 FROM "packing"."box" b
                                 INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                 LEFT JOIN gt ON b.box_uid = gt.box_uid
-                                WHERE b.box_uid = UUID(${box_uid});
+                                WHERE b.box_uid = UUID(${parsedInput.data.box_uid});
                             `;
             parsedForm = readBoxSchema.safeParse(result[0]);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('box_uid', sql.VarChar, box_uid)
+                            .input('box_uid', sql.VarChar, parsedInput.data.box_uid)
                             .query`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
@@ -691,8 +835,27 @@ export async function readBoxById(box_uid: string) {
 };
 
 
-export async function readBoxStatusByBoxUid(box_uid: string) {
+export async function readBoxStatusByBoxUid(box_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -702,7 +865,7 @@ export async function readBoxStatusByBoxUid(box_uid: string) {
                     box_status: true,
                 },
                 where: {
-                    box_uid: box_uid,
+                    box_uid: parsedInput.data.box_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -711,7 +874,7 @@ export async function readBoxStatusByBoxUid(box_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('box_uid', sql.VarChar, box_uid)
+                            .input('box_uid', sql.VarChar, parsedInput.data.box_uid)
                             .query`
                                     SELECT b.box_uid, b.box_status
                                     FROM "packing"."box" b
@@ -733,8 +896,27 @@ export async function readBoxStatusByBoxUid(box_uid: string) {
 };
 
 
-export async function readBoxStatusByTrayUid(tray_uid: string) {
+export async function readBoxStatusByTrayUid(tray_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteTraySchema.safeParse({
+        tray_uid: tray_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -749,7 +931,7 @@ export async function readBoxStatusByTrayUid(tray_uid: string) {
                     },
                 },
                 where: {
-                    tray_uid: tray_uid,
+                    tray_uid: parsedInput.data.tray_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -758,7 +940,7 @@ export async function readBoxStatusByTrayUid(tray_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('tray_uid', sql.VarChar, tray_uid)
+                            .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .query`
                                     SELECT t.tray_uid, b.box_uid, b.box_status
                                     FROM "packing"."tray" t
@@ -781,8 +963,27 @@ export async function readBoxStatusByTrayUid(tray_uid: string) {
 };
 
 
-export async function readBoxStatusByLotUid(lot_uid: string) {
+export async function readBoxStatusByLotUid(lot_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteLotSchema.safeParse({
+        lot_uid: lot_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -800,7 +1001,7 @@ export async function readBoxStatusByLotUid(lot_uid: string) {
                     },
                 },
                 where: {
-                    lot_uid: lot_uid,
+                    lot_uid: parsedInput.data.lot_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -809,7 +1010,7 @@ export async function readBoxStatusByLotUid(lot_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('lot_uid', sql.VarChar, lot_uid)
+                            .input('lot_uid', sql.VarChar, parsedInput.data.lot_uid)
                             .query`
                                     SELECT l.lot_uid, t.tray_uid, b.box_uid, b.box_status
                                     FROM "packing"."lot" l
@@ -833,8 +1034,27 @@ export async function readBoxStatusByLotUid(lot_uid: string) {
 };
 
 
-export async function checkBoxShippableById(box_uid: string) {
+export async function checkBoxShippableById(box_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -842,7 +1062,7 @@ export async function checkBoxShippableById(box_uid: string) {
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
                                         FROM "packing"."tray"
-                                        WHERE box_uid = UUID(${box_uid})
+                                        WHERE box_uid = UUID(${parsedInput.data.box_uid})
                                         GROUP BY box_uid
                                     ),
                                     gl AS (
@@ -857,14 +1077,14 @@ export async function checkBoxShippableById(box_uid: string) {
                                     FROM "packing"."box" b
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     LEFT JOIN gl ON b.box_uid = gl.box_uid
-                                    WHERE b.box_uid = UUID(${box_uid});
+                                    WHERE b.box_uid = UUID(${parsedInput.data.box_uid});
                             `;
             parsedForm = checkBoxShippableSchema.safeParse(result[0]);
         }
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('box_uid', sql.VarChar, box_uid)
+                            .input('box_uid', sql.VarChar, parsedInput.data.box_uid)
                             .query`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
@@ -910,9 +1130,17 @@ export async function checkBoxShippableById(box_uid: string) {
 };
 
 
-export async function shipBox(box_uid: string): StatePromise {
+export async function shipBox(box_uid: string | unknown): StatePromise {
 
-    const shipStatus = await checkBoxShippableById(box_uid);
+    const parsedInput = deleteBoxSchema.safeParse({
+        box_uid: box_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const shipStatus = await checkBoxShippableById(parsedInput.data.box_uid);
 
     if (shipStatus !== "Box is shippable.") {
         return { 
@@ -935,6 +1163,22 @@ export async function shipBox(box_uid: string): StatePromise {
             message: "Invalid input provided, failed to ship box!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -970,7 +1214,7 @@ export async function shipBox(box_uid: string): StatePromise {
 };
 
 
-export async function undoShipBox(box_uid: string): StatePromise {
+export async function undoShipBox(box_uid: string | unknown): StatePromise {
 
     const now = new Date();
 

@@ -34,7 +34,7 @@ export default async function Lot(props: LotProps) {
     const tray_uid = params.tray_uid;
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
+    const query = searchParams?.query || undefined;
 
     const totalPage = await readLotTotalPage(itemsPerPage, query, tray_uid);
 

@@ -30,7 +30,7 @@ export default async function Tray(props : TrayProps) {
     const box_uid = params.box_uid;
     const itemsPerPage = Number(searchParams?.itemsPerPage) || 10;
     const currentPage = Number(searchParams?.currentPage) || 1;
-    const query = searchParams?.query?.trim().split(" ").join(" & ") || undefined;
+    const query = searchParams?.query || undefined;
 
     const totalPage = await readTrayTotalPage(itemsPerPage, query, box_uid);
 

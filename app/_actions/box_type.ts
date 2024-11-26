@@ -8,7 +8,7 @@ import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
 import { readBoxTypeSchema, createBoxTypeSchema, updateBoxTypeSchema, deleteBoxTypeSchema, boxPartNumberSchema } from "@/app/_libs/zod_server";
-import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
+import { itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -19,12 +19,11 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query?: string | unknown | undefined) {
+export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
 
     const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
     const parsedQuery = querySchema.parse(query);
-    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
 
     const session = await getServerSession(options);
 
@@ -36,6 +35,7 @@ export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query
         redirect("/tooManyRequests");
     }
 
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -83,7 +83,7 @@ export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query
     return totalPage
 };
 
-export async function readBoxTypeByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown | undefined) {
+export async function readBoxTypeByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -102,9 +102,13 @@ export async function readBoxTypeByPage(itemsPerPage: number | unknown, currentP
     if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
         redirect("/denied");
     }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
     
-    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -175,6 +179,10 @@ export async function readBoxType() {
         redirect("/denied");
     }
 
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -229,6 +237,10 @@ export async function readBoxTypeUid(box_part_number: string | unknown) {
 
     if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
         redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
     }
 
     let parsedForm;
@@ -479,10 +491,12 @@ export async function deleteBoxType(box_type_uid: string): StatePromise {
 export async function readBoxTypeById(box_type_uid: string) {
     noStore();
 
-    const parsed_uid = uuidSchema.safeParse(box_type_uid);
+    const parsedInput = deleteBoxTypeSchema.safeParse({
+        box_type_uid: box_type_uid,
+    });
 
-    if (!parsed_uid.success) {
-        throw new Error(parsed_uid.error.message)
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
     };
 
     const session = await getServerSession(options);
@@ -491,12 +505,16 @@ export async function readBoxTypeById(box_type_uid: string) {
         redirect("/denied");
     }
 
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.boxType.findUnique({
                 where: {
-                    box_type_uid: parsed_uid.data,
+                    box_type_uid: parsedInput.data.box_type_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -505,7 +523,7 @@ export async function readBoxTypeById(box_type_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('box_type_uid', sql.VarChar, parsed_uid)
+                            .input('box_type_uid', sql.VarChar, parsedInput.data.box_type_uid)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
                                     FROM "packing"."box_type"
                                     WHERE box_type_uid = @box_type_uid;

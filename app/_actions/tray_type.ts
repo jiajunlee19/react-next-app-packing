@@ -1,9 +1,14 @@
 'use server'
 
+import { rateLimitByIP, rateLimitByUid } from "@/app/_libs/rate_limit";
+import { getServerSession } from "next-auth/next";
+import { options } from "@/app/_libs/nextAuth_options";
+import { redirect } from "next/navigation";
 import { v5 as uuidv5 } from 'uuid';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
-import { readTrayTypeSchema, createTrayTypeSchema, updateTrayTypeSchema, deleteTrayTypeSchema, TReadTrayTypeSchema } from "@/app/_libs/zod_server";
+import { readTrayTypeSchema, createTrayTypeSchema, updateTrayTypeSchema, deleteTrayTypeSchema, TReadTrayTypeSchema, trayPartNumberSchema } from "@/app/_libs/zod_server";
+import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { parsedEnv } from '@/app/_libs/zod_env';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
@@ -14,21 +19,35 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
-export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string) {
+export async function readTrayTypeTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
+
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     const QUERY = query ? `${query || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.trayType.findMany({
                 where: {
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['tray_type_uid', 'tray_part_number'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -59,12 +78,12 @@ export async function readTrayTypeTotalPage(itemsPerPage: number, query?: string
     catch (err) {
         throw new Error(getErrorMessage(err))
     }
-    const totalPage = Math.ceil(parsedForm.data.length / itemsPerPage);
+    const totalPage = Math.ceil(parsedForm.data.length / parsedItemsPerPage);
     // revalidatePath('/protected/tray_type');
     return totalPage
 };
 
-export async function readTrayTypeByPage(itemsPerPage: number, currentPage: number, query?: string) {
+export async function readTrayTypeByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -74,20 +93,34 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
     // console.log("ok")
     // <dev only>
 
+    const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
+    const parsedCurrentPage = currentPageSchema.parse(currentPage);
+    const parsedQuery = querySchema.parse(query);
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     const QUERY = query ? `${query || ''}%` : '%';
-    const OFFSET = (currentPage - 1) * itemsPerPage;
+    const OFFSET = (parsedCurrentPage - 1) * parsedItemsPerPage;
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.trayType.findMany({
                 where: {
-                    ...(query &&
+                    ...(parsedQuery &&
                         {
                             OR: [
                                 ...(['tray_type_uid', 'tray_part_number'].map((e) => {
                                     return {
                                         [e]: {
-                                            search: `${query}:*`,
+                                            search: `${parsedQuery.replace(/[\s\n\t]/g, '_')}:*`,
                                         },
                                     };
                                 })),
@@ -95,7 +128,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
                         }),
                 },
                 skip: OFFSET,
-                take: itemsPerPage,
+                take: parsedItemsPerPage,
             });
             const flattenResult = result.map((row) => {
                 return flattenNestedObject(row)
@@ -106,7 +139,7 @@ export async function readTrayTypeByPage(itemsPerPage: number, currentPage: numb
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('offset', sql.Int, OFFSET)
-                            .input('limit', sql.Int, itemsPerPage)
+                            .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
@@ -140,6 +173,16 @@ export async function readTrayType() {
     // console.log("ok")
     // <dev only>
 
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -172,7 +215,7 @@ export async function readTrayType() {
     return parsedForm.data
 };
 
-export async function readTrayTypeUid(tray_part_number: string) {
+export async function readTrayTypeUid(tray_part_number: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -182,12 +225,30 @@ export async function readTrayTypeUid(tray_part_number: string) {
     // console.log("ok")
     // <dev only>
 
+    const parsedInput = trayPartNumberSchema.safeParse({
+        tray_part_number: tray_part_number,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.trayType.findFirst({
                 where: {
-                    tray_part_number: tray_part_number,
+                    tray_part_number: parsedInput.data.tray_part_number,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -196,7 +257,7 @@ export async function readTrayTypeUid(tray_part_number: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('tray_part_number', sql.VarChar, tray_part_number)
+                            .input('tray_part_number', sql.VarChar, parsedInput.data.tray_part_number)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE tray_part_number = @tray_part_number;
@@ -217,12 +278,20 @@ export async function readTrayTypeUid(tray_part_number: string) {
     return parsedForm.data
 };
 
-export async function createTrayType(prevState: State, formData: FormData): StatePromise {
+export async function createTrayType(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
+    const tray_part_number = formData.get('tray_part_number');
     const parsedForm = createTrayTypeSchema.safeParse({
-        tray_type_uid: uuidv5(formData.get('tray_part_number') as string, UUID5_SECRET),
+        tray_type_uid: (typeof tray_part_number == 'string') ? uuidv5(tray_part_number, UUID5_SECRET) : undefined,
         tray_part_number: formData.get('tray_part_number'),
         tray_max_drive: formData.get('tray_max_drive'),
         tray_type_created_dt: now,
@@ -235,6 +304,22 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
             message: "Invalid input provided, failed to create tray_type!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -271,7 +356,14 @@ export async function createTrayType(prevState: State, formData: FormData): Stat
 };
 
 
-export async function updateTrayType(prevState: State, formData: FormData): StatePromise {
+export async function updateTrayType(prevState: State | unknown, formData: FormData | unknown): StatePromise {
+
+    if (!(formData instanceof FormData)) {
+        return { 
+            error: {error: ["Invalid input provided !"]},
+            message: "Invalid input provided !"
+        };  
+    };
 
     const now = new Date();
 
@@ -287,6 +379,22 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
             message: "Invalid input provided, failed to update tray_type!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -322,7 +430,7 @@ export async function updateTrayType(prevState: State, formData: FormData): Stat
 };
 
 
-export async function deleteTrayType(tray_type_uid: string): StatePromise {
+export async function deleteTrayType(tray_type_uid: string | unknown): StatePromise {
 
     const parsedForm = deleteTrayTypeSchema.safeParse({
         tray_type_uid: tray_type_uid,
@@ -334,6 +442,22 @@ export async function deleteTrayType(tray_type_uid: string): StatePromise {
             message: "Invalid input provided, failed to delete tray_type!"
         };
     };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin' )) {
+        return { 
+            error: {error: ["Access denied."]},
+            message: "Access denied."
+        };
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        return { 
+            error: {error: ["Too many requests, try again later."]},
+            message: "Too many requests, try again later."
+        };
+    }
 
     try {
 
@@ -364,14 +488,33 @@ export async function deleteTrayType(tray_type_uid: string): StatePromise {
     return { message: `Successfully deleted tray_type ${parsedForm.data.tray_type_uid}` }
 };
 
-export async function readTrayTypeById(tray_type_uid: string) {
+export async function readTrayTypeById(tray_type_uid: string | unknown) {
     noStore();
+
+    const parsedInput = deleteTrayTypeSchema.safeParse({
+        tray_type_uid: tray_type_uid,
+    });
+
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
+    };
+
+    const session = await getServerSession(options);
+
+    if (!session || (session.user.role !== 'boss' && session.user.role !== 'admin')) {
+        redirect("/denied");
+    }
+
+    if (await rateLimitByUid(session.user.user_uid, 20, 1000*60)) {
+        redirect("/tooManyRequests");
+    }
+
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
             const result = await prisma.trayType.findUnique({
                 where: {
-                    tray_type_uid: tray_type_uid,
+                    tray_type_uid: parsedInput.data.tray_type_uid,
                 }
             });
             const flattenResult = flattenNestedObject(result);
@@ -380,6 +523,7 @@ export async function readTrayTypeById(tray_type_uid: string) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
+                            .input('tray_type_uid', sql.VarChar, parsedInput.data.tray_type_uid)
                             .query`SELECT tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt 
                                     FROM "packing"."tray_type"
                                     WHERE tray_type_uid = @tray_type_uid;

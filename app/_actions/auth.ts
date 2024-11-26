@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import sql from 'mssql';
 import { sqlConfig } from "@/app/_libs/sql_config";
 import { type TUsernameSchema, type TPasswordSchema, usernameSchema, signInSchema, signUpSchema, readUserSchema, readUserWithoutPassSchema, updateUserSchema, deleteUserSchema, updateRoleSchema, updateRoleAdminSchema, readUserWithoutPassAdminSchema } from "@/app/_libs/zod_auth";
-import { uuidSchema, itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
+import { itemsPerPageSchema, currentPageSchema, querySchema } from '@/app/_libs/zod_server';
 import { getErrorMessage } from '@/app/_libs/error_handler';
 import { revalidatePath } from 'next/cache';
 import { signJwtToken } from '@/app/_libs/jwt';
@@ -140,13 +140,11 @@ export async function readUserByUsernameAdmin(username: TUsernameSchema | unknow
     return parsedResult.data
 };
 
-export async function readUserTotalPage(itemsPerPage: number | unknown, query?: string | unknown | undefined) {
+export async function readUserTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
 
     const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
     const parsedQuery = querySchema.parse(query);
-
-    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
 
     const session = await getServerSession(options);
 
@@ -158,6 +156,7 @@ export async function readUserTotalPage(itemsPerPage: number | unknown, query?: 
         redirect("/tooManyRequests");
     }
 
+    const QUERY = parsedQuery ? `${parsedQuery || ''}%` : '%';
     let parsedForm;
     try {
         if (parsedEnv.DB_TYPE === 'PRISMA') {
@@ -210,7 +209,7 @@ export async function readUserTotalPage(itemsPerPage: number | unknown, query?: 
     return totalPage
 };
 
-export async function readUserByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown | undefined) {
+export async function readUserByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -296,7 +295,7 @@ export async function readUserByPage(itemsPerPage: number | unknown, currentPage
     return parsedForm.data
 };
 
-export async function readAdminTotalPage(itemsPerPage: number | unknown, query?: string | unknown | undefined) {
+export async function readAdminTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
     noStore();
 
     const parsedItemsPerPage = itemsPerPageSchema.parse(itemsPerPage);
@@ -369,7 +368,7 @@ export async function readAdminTotalPage(itemsPerPage: number | unknown, query?:
     return totalPage
 };
 
-export async function readAdminByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown | undefined) {
+export async function readAdminByPage(itemsPerPage: number | unknown, currentPage: number | unknown, query?: string | unknown) {
     noStore();
 
     // <dev only> 
@@ -835,15 +834,17 @@ export async function deleteUser(user_uid: string | unknown): StatePromise {
 export async function readUserById(user_uid: string | unknown) {
     noStore();
     
-    const parsed_uid = uuidSchema.safeParse(user_uid);
+    const parsedInput = deleteUserSchema.safeParse({
+        user_uid: user_uid,
+    });
 
-    if (!parsed_uid.success) {
-        throw new Error(parsed_uid.error.message)
+    if (!parsedInput.success) {
+        throw new Error(parsedInput.error.message)
     };
 
     const session = await getServerSession(options);
 
-    if (!session || (session.user.role !== 'boss' && session.user.user_uid !== parsed_uid.data )) {
+    if (!session || (session.user.role !== 'boss' && session.user.user_uid !== parsedInput.data.user_uid )) {
         redirect("/denied");
     }
 
@@ -863,7 +864,7 @@ export async function readUserById(user_uid: string | unknown) {
                     user_updated_dt: true,
                 },
                 where: {
-                    user_uid: parsed_uid.data,
+                    user_uid: parsedInput.data.user_uid,
                 },
             });
             const flattenResult = flattenNestedObject(result);
@@ -872,7 +873,7 @@ export async function readUserById(user_uid: string | unknown) {
         else {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
-                            .input('user_uid', sql.VarChar, parsed_uid)
+                            .input('user_uid', sql.VarChar, parsedInput.data.user_uid)
                             .query`SELECT user_uid, username, role, user_created_dt, user_updated_dt 
                                     FROM "packing"."user"
                                     WHERE user_uid = @user_uid;
