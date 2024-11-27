@@ -37,6 +37,9 @@ pipeline {
         // }
 
         // stage('Kill') {
+        //     when {
+        //         branch 'master'
+        //     }
         //     steps {
         //         sh 'chmod +x ./jenkins/scripts/kill.sh'
         //         sh './jenkins/scripts/kill.sh'
@@ -51,6 +54,9 @@ pipeline {
         // }
 
         // stage('Deploy') {
+        //     when {
+        //         branch 'master'
+        //     }
         //     steps {
         //         sh 'chmod +x ./jenkins/scripts/deploy.sh'
         //         sh 'JENKINS_NODE_COOKIE=dontKillMe ./jenkins/scripts/deploy.sh'
@@ -61,16 +67,36 @@ pipeline {
     post {
         success {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                echo "[Success]: Jenkins Job -> ${env.JOB_NAME}"
-                mail subject: "[Success]: Jenkins Job -> ${env.JOB_NAME}", body: "Hi,<br><br>Project: ${env.JOB_NAME} has succeeded! Refer to below details: <br><br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL} <br> Node Name: ${env.NODE_NAME} <br><br><br>Best Regards,<br>Jenkins Robot", charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
+                echo "[Success]: ${env.JOB_NAME}"
+                mail subject: "[Success]: ${env.JOB_NAME}", body: "Hi,<br><br>${env.JOB_NAME} has succeeded! Refer to below details: <br><br> \
+                    <ul> \
+                        <li>Change URL: ${env.CHANGE_URL}</li> \
+                        <li>Change Branch: ${env.CHANGE_BRANCH}</li> \
+                        <li>Change Target: ${env.CHANGE_TARGET}</li> \
+                        <li>Build Number: ${env.BUILD_NUMBER}</li> \
+                        <li>Build URL: ${env.BUILD_URL}</li> \
+                        <li>Node Name: ${env.NODE_NAME}</li> \
+                    </ul> \
+                    <br><br><br>Best Regards,<br>Jenkins Robot", 
+                charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
             }
         }  
 
         failure {  
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                echo "[Failed]: Jenkins Job -> ${env.JOB_NAME}"
-                mail subject: "[Failed]: Jenkins Job -> ${env.JOB_NAME}", body: "Hi,<br><br>Project: ${env.JOB_NAME} has failed! Refer to below details: <br><br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL} <br> Node Name: ${env.NODE_NAME} <br><br><br>Best Regards,<br>Jenkins Robot", charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
+                echo "[Failure]: ${env.JOB_NAME}"
+                mail subject: "[Failure]: ${env.JOB_NAME}", body: "Hi,<br><br>${env.JOB_NAME} has failed! Refer to below details: <br><br> \
+                    <ul> \
+                        <li>Change URL: ${env.CHANGE_URL}</li> \
+                        <li>Change Branch: ${env.CHANGE_BRANCH}</li> \
+                        <li>Change Target: ${env.CHANGE_TARGET}</li> \
+                        <li>Build Number: ${env.BUILD_NUMBER}</li> \
+                        <li>Build URL: ${env.BUILD_URL}</li> \
+                        <li>Node Name: ${env.NODE_NAME}</li> \
+                    </ul> \
+                    <br><br><br>Best Regards,<br>Jenkins Robot", 
+                charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
             }
-        } 
+        }  
     }
 }
