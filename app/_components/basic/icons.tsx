@@ -17,3 +17,44 @@ export function LinkedInIcon(props: React.SVGProps<SVGSVGElement>) {
         </svg>
     );
 };
+
+export function HamburgerIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 10 9" fill="none" strokeLinecap="round" aria-hidden="true" {...props}>
+            <path d="M.5 1h9M.5 8h9M.5 4.5h9"/>
+        </svg>
+    );
+};
+
+export function CrossIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 10 9" fill="none" strokeLinecap="round" aria-hidden="true" {...props}>
+            <path d="m1.5 1 7 7M8.5 1l-7 7" />
+        </svg>
+    );
+};
+
+export function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12.01 12a4.25 4.25 0 1 0-6.02-6 4.25 4.25 0 0 0 6.02 6Zm0 0 3.24 3.25"/>
+        </svg>
+    );
+};
+
+export function LightIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
+            <path d="M12.5 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/>
+            <path strokeLinecap="round" d="M10 5.5v-1M13.182 6.818l.707-.707M14.5 10h1M13.182 13.182l.707.707M10 15.5v-1M6.11 13.889l.708-.707M4.5 10h1M6.11 6.111l.708.707"/>
+        </svg>
+    );
+};
+
+export function DarkIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
+            <path d="M15.224 11.724a5.5 5.5 0 0 1-6.949-6.949 5.5 5.5 0 1 0 6.949 6.949Z"/>
+        </svg>
+    );
+};
