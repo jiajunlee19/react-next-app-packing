@@ -27,7 +27,7 @@
   }
 
   button, .btn {
-    @apply p-[1%] border rounded-xl whitespace-nowrap
+    @apply p-[1%] border-2 rounded-xl whitespace-nowrap
             hover:transition hover:duration-300 hover:opacity-80 hover:font-semibold
             hover:active:font-bold
             disabled:opacity-50 disabled:hover:opacity-50 disabled:hover:font-normal
@@ -36,8 +36,13 @@
   }
 
   .btn-primary {
-    @apply bg-black text-white
+    @apply bg-white/90 text-black
             dark:bg-emerald-400/10 dark:text-emerald-300
+  }
+
+  .btn-secondary {
+    @apply bg-white/90 text-black/70
+            dark:bg-emerald-400/10 dark:text-white/90
   }
 
   .btn-ok {

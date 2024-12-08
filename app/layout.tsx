@@ -34,19 +34,20 @@ export default async function RootLayout({
         <body>
 
           <div className="w-full bg-white dark:bg-zinc-900">
-            <div className="flex flex-col h-screen lg:ml-72 xl:ml-80">
-              <header className="contents z-30 lg:flex lg:fixed lg:inset-0 lg:w-72 xl:w-80 lg:pointer-events-auto">
+            <div className="flex flex-col h-screen lg:ml-64 xl:ml-72">
+              <header className="contents z-20 lg:flex lg:fixed lg:inset-0 lg:w-64 xl:w-72">
                 <Header/>
               </header>
 
-              <main className="block h-[calc(100vh-56px-56px)] w-full mt-14 mb-14 px-4 overflow-auto sm:px-6 lg:px-8">
+              <main className="block h-[calc(100vh-56px-56px)] w-full mt-14 mb-14 px-4 overflow-y-scroll sm:px-6 lg:px-8">
                 {children}
               </main>
 
-              <footer className="fixed z-30 w-full h-14 bottom-0 lg:-ml-72 xl:-ml-80 bg-white dark:bg-zinc-900">
-                <div className="flex flex-col h-14 items-center justify-between border-t border-zinc-900/50 dark:border-white/50 sm:flex-row sm:gap-2">
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 sm:m-4">© Copyright 2023. All rights reserved.</p>
-                  <div className="flex gap-2 items-center sm:m-4">
+              <footer className="fixed z-30 w-full h-14 bottom-0 lg:-ml-64 xl:-ml-72 bg-white dark:bg-zinc-900">
+                <div className="absolute inset-x-0 bottom-full h-1 transition bg-zinc-900 dark:bg-white" />
+                <div className="flex flex-col h-14 items-center justify-between sm:flex-row sm:mx-4">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">© Copyright 2023. All rights reserved.</p>
+                  <div className="flex gap-2 items-center">
                     <p className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">Developed by jiajunlee</p>
                     <button className="hover:bg-zinc-900/50 dark:hover:bg-white/50">
                       <a href="https://github.com/jiajunlee19" target="_blank" rel="noopener noreferrer">
