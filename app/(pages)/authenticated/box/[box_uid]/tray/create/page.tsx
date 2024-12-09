@@ -28,8 +28,8 @@ export default async function CreateTray(props: CreateTrayProps) {
         <>  
             <Breadcrumbs breadcrumbs={[
                 {label: 'Box', href: '/authenticated/box', active: false},
-                {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
-                {label: "Create Tray", href: `/box/${box_uid}/tray/create`, active: true}
+                {label: `Box: ${box_uid}`, href: `/authenticated/box/${box_uid}/tray`, active: false},
+                {label: "Create Tray", href: `/authenticated/box/${box_uid}/tray/create`, active: true}
             ]} />
             <Form 
                 formTitle="Create Tray"
@@ -41,7 +41,7 @@ export default async function CreateTray(props: CreateTrayProps) {
                 selectOptionData={[...trayType]}
                 action="create"
                 formAction={createTray}
-                redirectLink={`/box/${box_uid}/tray`}
+                redirectLink={`/authenticated/box/${box_uid}/tray`}
             />
         </>
     );

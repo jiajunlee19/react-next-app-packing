@@ -25,9 +25,9 @@ export default async function CreateLot(props: CreateLotProps) {
         <>  
             <Breadcrumbs breadcrumbs={[
                 {label: 'Box', href: '/authenticated/box', active: false},
-                {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
-                {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: false},
-                {label: "Create Lot", href: `/box/${box_uid}/tray/${tray_uid}/lot/create`, active: true}
+                {label: `Box: ${box_uid}`, href: `/authenticated/box/${box_uid}/tray`, active: false},
+                {label: `Tray: ${tray_uid}`, href: `/authenticated/box/${box_uid}/tray/${tray_uid}/lot`, active: false},
+                {label: "Create Lot", href: `/authenticated/box/${box_uid}/tray/${tray_uid}/lot/create`, active: true}
             ]} />
             <Form 
                 formTitle="Create Lot"
@@ -40,7 +40,7 @@ export default async function CreateLot(props: CreateLotProps) {
                 selectOptionData={null}
                 action="create"
                 formAction={createLot}
-                redirectLink={`/box/${box_uid}/tray/${tray_uid}/lot`}
+                redirectLink={`/authenticated/box/${box_uid}/tray/${tray_uid}/lot`}
             />
         </>
     );
