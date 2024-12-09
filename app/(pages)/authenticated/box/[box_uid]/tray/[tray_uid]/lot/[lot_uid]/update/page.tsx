@@ -39,9 +39,9 @@ export default async function UpdateLot(props : UpdateLotProps) {
         <>
             <Breadcrumbs breadcrumbs={[
                 {label: 'Box', href: '/authenticated/box', active: false},
-                {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
-                {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: false},
-                {label: `Lot: ${lot_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot/${lot_uid}/update`, active: true}
+                {label: `Box: ${box_uid}`, href: `/authenticated/box/${box_uid}/tray`, active: false},
+                {label: `Tray: ${tray_uid}`, href: `/authenticated/box/${box_uid}/tray/${tray_uid}/lot`, active: false},
+                {label: `Lot: ${lot_uid}`, href: `/authenticated/box/${box_uid}/tray/${tray_uid}/lot/${lot_uid}/update`, active: true}
             ]} />
             <Form 
                 formTitle="Update Lot"
@@ -54,7 +54,7 @@ export default async function UpdateLot(props : UpdateLotProps) {
                 selectOptionData={null}
                 action="update"
                 formAction={updateLot}
-                redirectLink={`/box/${box_uid}/tray/${tray_uid}/lot`}
+                redirectLink={`/authenticated/box/${box_uid}/tray/${tray_uid}/lot`}
             />
         </>
     );

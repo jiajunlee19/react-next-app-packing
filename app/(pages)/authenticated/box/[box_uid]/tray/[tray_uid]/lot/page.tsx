@@ -55,8 +55,8 @@ export default async function Lot(props: LotProps) {
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
                     {label: 'Box', href: '/authenticated/box', active: false},
-                    {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: false},
-                    {label: `Tray: ${tray_uid}`, href: `/box/${box_uid}/tray/${tray_uid}/lot`, active: true},
+                    {label: `Box: ${box_uid}`, href: `/authenticated/box/${box_uid}/tray`, active: false},
+                    {label: `Tray: ${tray_uid}`, href: `/authenticated/box/${box_uid}/tray/${tray_uid}/lot`, active: true},
                 ]} />
             </div>
             
@@ -66,7 +66,7 @@ export default async function Lot(props: LotProps) {
                 <p>tray_current_drive = {tray_current_drive}</p>
             </div>
 
-            <Link aria-disabled={isTrayMax} tabIndex={isTrayMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isTrayMax && "disabled")} href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
+            <Link aria-disabled={isTrayMax} tabIndex={isTrayMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isTrayMax && "disabled")} href={`/authenticated/box/${box_uid}/tray/${tray_uid}/lot/create`}>
                 {isTrayMax ? "Tray is Full" : createButtonTitle}
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>

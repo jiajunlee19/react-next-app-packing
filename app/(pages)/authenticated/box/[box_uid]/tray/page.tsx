@@ -51,7 +51,7 @@ export default async function Tray(props : TrayProps) {
             <div className="-mx-[2%]">
                 <Breadcrumbs breadcrumbs={[
                     {label: 'Box', href: '/authenticated/box', active: false},
-                    {label: `Box: ${box_uid}`, href: `/box/${box_uid}/tray`, active: true}
+                    {label: `Box: ${box_uid}`, href: `/authenticated/box/${box_uid}/tray`, active: true}
                 ]} />
             </div>
 
@@ -61,7 +61,7 @@ export default async function Tray(props : TrayProps) {
                 <p>box_current_tray = {box_current_tray}</p>
             </div>
 
-            <Link aria-disabled={isBoxMax} tabIndex={isBoxMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isBoxMax && "disabled")} href={`/box/${box_uid}/tray/create`}>
+            <Link aria-disabled={isBoxMax} tabIndex={isBoxMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isBoxMax && "disabled")} href={`/authenticated/box/${box_uid}/tray/create`}>
                 {createButtonTitle}
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
