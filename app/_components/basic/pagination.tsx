@@ -128,10 +128,8 @@ function PaginationArrow({ href, direction, isDisabled }: PaginationArrowProps) 
             {icon}
         </button>
         :
-        <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={href}>
-            <button className={className}>
-                {icon}
-            </button>
+        <Link className={twMerge("btn no-underline", className)} href={href}>
+            {icon}
         </Link>
     );
 };
@@ -160,10 +158,8 @@ function PaginationNumber({ page, href, isActive, position }: PaginationNumberPr
             {page}
         </button>
         :
-        <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={href}>
-            <button className={className}>
-                {page}
-            </button>
+        <Link className={twMerge("btn no-underline", className)} href={href}>
+            {page}
         </Link>
     );
 };

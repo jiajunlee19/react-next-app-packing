@@ -138,13 +138,11 @@ export default function FormWithoutState( {formTitle, inputType, rowData, select
     }>
             <h2>{formTitle}</h2>
             {generateFormInput(inputType, rowData, selectOptionData)}
-            <SubmitButton buttonClass="btn-ok w-40 mr-4 mt-10" buttonTitle="Submit" onButtonClick={handleSubmitClick(action)} submitingButtonTitle="Submitting" />
-            <Link className="no-underline text-black dark:text-white hover:text-black hover:dark:text-white" href={redirectLink}>
-                <button type="button" className="btn-cancel w-40 mr-4 mt-4">
-                    Close
-                </button>
+            <SubmitButton buttonClass="btn-ok mr-4 mt-10" buttonTitle="Submit" onButtonClick={handleSubmitClick(action)} submitingButtonTitle="Submitting" />
+            <Link className="btn btn-cancel mr-4 no-underline" href={redirectLink}>
+                Close
             </Link>
-            <button type="button" className="btn-cancel w-40 mr-4 mt-4" onClick={() => formRef.current?.reset()}>Reset</button>
+            <button type="button" className="btn-cancel mr-4" onClick={() => formRef.current?.reset()}>Reset</button>
         </form>
     );
 };

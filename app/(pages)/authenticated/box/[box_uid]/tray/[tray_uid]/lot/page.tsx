@@ -6,8 +6,9 @@ import { columns } from "@/app/(pages)/authenticated/box/[box_uid]/tray/[tray_ui
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
 import Link from "next/link";
 import { Suspense } from "react";
-import type { Metadata } from 'next';
+import { twMerge } from "tailwind-merge";
 import { readTrayById } from "@/app/_actions/tray";
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'Lot',
@@ -65,10 +66,8 @@ export default async function Lot(props: LotProps) {
                 <p>tray_current_drive = {tray_current_drive}</p>
             </div>
 
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
-                <button disabled={isTrayMax} className="btn-primary w-min">
-                    {isTrayMax ? "Tray is Full" : createButtonTitle}
-                </button>
+            <Link aria-disabled={isTrayMax} tabIndex={isTrayMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isTrayMax && "disabled")} href={`/box/${box_uid}/tray/${tray_uid}/lot/create`}>
+                {isTrayMax ? "Tray is Full" : createButtonTitle}
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
                 <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={tray_uid} readAction={readAction} columns={columns} />

@@ -7,10 +7,8 @@ type UpdateButtonProps = {
 
 export default function UpdateButton({ href }: UpdateButtonProps ) {
     return (
-        <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={href}>
-            <button className="btn-primary w-min p-1">
-                <PencilIcon className="h-5" />
-            </button>
+        <Link className="btn btn-primary w-min p-1 no-underline" href={href}>
+            <PencilIcon className="h-5" />
         </Link>
     );
 };

@@ -26,6 +26,11 @@
             dark:text-blue-300 dark:hover:text-purple-200 dark:transition
   }
 
+  .disabled {
+    @apply pointer-events-none
+            opacity-50 font-normal
+  }
+
   button, .btn {
     @apply p-[1%] border-2 rounded-xl whitespace-nowrap
             hover:transition hover:duration-300 hover:opacity-80 hover:font-semibold
