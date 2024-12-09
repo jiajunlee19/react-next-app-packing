@@ -272,7 +272,7 @@ export async function createLot(prevState: State | unknown, formData: FormData |
 
         // Return error if exceed tray max drive
         const {tray_current_drive, tray_max_drive} = await readTrayById(parsedForm.data.tray_uid);
-        if (!tray_current_drive || !tray_max_drive || (tray_current_drive + parsedForm.data.lot_qty) > tray_max_drive) {
+        if (typeof tray_current_drive == "undefined" || typeof tray_max_drive == "undefined" || (tray_current_drive + parsedForm.data.lot_qty) > tray_max_drive) {
             return { 
                 error: {error: ["Exceeded max drive qty in the tray, failed to create new lot !"]},
                 message: "Exceeded max drive qty in the tray, failed to create new lot !"

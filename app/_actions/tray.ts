@@ -279,7 +279,7 @@ export async function createTray(prevState: State | unknown, formData: FormData 
 
         // Return error if exceed box max tray
         const {box_current_tray, box_max_tray} = await readBoxById(parsedForm.data.box_uid);
-        if (!box_current_tray || !box_max_tray || (box_current_tray + 1) > box_max_tray) {
+        if (typeof box_current_tray == "undefined" || typeof box_max_tray == "undefined" || (box_current_tray + 1) > box_max_tray) {
             return { 
                 error: {error: ["Exceeded max tray count in the box, failed to create new tray !"]},
                 message: "Exceeded max tray count in the box, failed to create new tray !"
