@@ -32,10 +32,8 @@ export default async function Shipdoc(
     return (
         <>
             <h1>{pageTitle}</h1>
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/protected/shipdoc/create">
-                <button className="btn-primary w-min">
-                    {createButtonTitle}
-                </button>
+            <Link className="btn btn-primary w-min no-underline p-[1%]" href="/protected/shipdoc/create">
+                {createButtonTitle}
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
                 <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />

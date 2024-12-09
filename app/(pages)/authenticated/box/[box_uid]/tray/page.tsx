@@ -7,6 +7,7 @@ import { columns } from "@/app/(pages)/authenticated/box/[box_uid]/tray/columns"
 import Breadcrumbs from "@/app/_components/basic/breadcrumbs";
 import Link from "next/link";
 import { Suspense } from "react";
+import { twMerge } from "tailwind-merge";
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -60,10 +61,8 @@ export default async function Tray(props : TrayProps) {
                 <p>box_current_tray = {box_current_tray}</p>
             </div>
 
-            <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href={`/box/${box_uid}/tray/create`}>
-                <button disabled={isBoxMax} className="btn-primary w-min">
-                    {createButtonTitle}
-                </button>
+            <Link aria-disabled={isBoxMax} tabIndex={isBoxMax ? -1 : undefined} className={twMerge("btn btn-primary w-min no-underline p-[1%]", isBoxMax && "disabled")} href={`/box/${box_uid}/tray/create`}>
+                {createButtonTitle}
             </Link>
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
                 <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} id={box_uid} readAction={readAction} columns={columns} />

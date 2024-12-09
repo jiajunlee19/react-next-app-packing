@@ -41,11 +41,6 @@ export default async function ShippedBox(
     return (
         <>
             <h1>{pageTitle}</h1>
-            {/* <Link className="no-underline text-white dark:text-emerald-400 hover:text-white hover:dark:text-emerald-400" href="/authenticated/box/create">
-                <button className="btn-primary w-min">
-                    {createButtonTitle}
-                </button>
-            </Link> */}
             <Suspense fallback={<TableSkeleton columnCount={4} rowCount={10} />}>
                 <DataTable itemsPerPage={itemsPerPage} currentPage={currentPage} query={query} readAction={readAction} columns={columns} />
             </Suspense>
