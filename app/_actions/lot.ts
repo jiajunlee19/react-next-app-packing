@@ -234,10 +234,9 @@ export async function createLot(prevState: State | unknown, formData: FormData |
         }
     };
 
-    const tray_id = formData.get('tray_id');
     const lot_id = formData.get('lot_id');
     const parsedForm = createLotSchema.safeParse({
-        lot_uid: (typeof tray_id == "string" && typeof lot_id == "string") ? uuidv5(tray_id + lot_id + now.toString(), UUID5_SECRET) : undefined,
+        lot_uid: (typeof tray_uid == "string" && typeof lot_id == "string") ? uuidv5(tray_uid + lot_id + now.toString(), UUID5_SECRET) : undefined,
         tray_uid: formData.get('tray_uid'),
         lot_id: formData.get('lot_id'),
         lot_qty: formData.get('lot_qty'),
@@ -331,8 +330,8 @@ export async function updateLot(prevState: State | unknown, formData: FormData |
 
     if (box_status !== 'active') {
         return { 
-            error: {error: ["Given box is not active. Failed to create Lot !"]},
-            message: "Given box is not active. Failed to create Lot !"
+            error: {error: ["Given box is not active. Failed to update Lot !"]},
+            message: "Given box is not active. Failed to update Lot !"
         }
     };
 
