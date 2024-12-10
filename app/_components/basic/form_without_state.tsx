@@ -46,6 +46,11 @@ export default function FormWithoutState( {formTitle, inputType, rowData, select
 
         // map each row into select option
         const selectOption = selectOptionData?.map((row) => {
+        
+            // Skip empty options
+            if (!getString(row?.[key])) {
+                return
+            }
 
             return (
                 <option key={getString(row?.[key])} defaultValue={getString(row?.[key])}>{getString(row?.[key])}</option>
