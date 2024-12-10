@@ -195,7 +195,7 @@ export async function readBoxByPage(itemsPerPage: number | unknown, currentPage:
                                     SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact,
-                                    CAST(COALERSE(gt.box_current_tray, 0) as INT) box_current_tray
+                                    CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
                                     FROM "packing"."box" b
                                     INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
