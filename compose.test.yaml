@@ -1,0 +1,16 @@
+services:
+  server:
+    image: react-next-app-packing-test:latest
+    container_name: react-next-app-packing-test
+    networks:
+      - react-next-app-packing-test
+    restart: no
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    env_file:
+      - .env
+
+networks:
+  react-next-app-packing-test:
+    name: react-next-app-packing-test

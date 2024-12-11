@@ -1,9 +1,9 @@
 services:
   server:
-    image: react-next-app-template:latest
-    container_name: react-next-app-template
+    image: react-next-app-packing:latest
+    container_name: react-next-app-packing
     networks:
-      - react-next-app-template
+      - react-next-app-packing
     restart: no
     build: .
     env_file:
@@ -12,5 +12,5 @@ services:
       - '${PORT}:${PORT}'
 
 networks:
-  react-next-app-template:
-    name: react-next-app-template
+  react-next-app-packing:
+    name: react-next-app-packing

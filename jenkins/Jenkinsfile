@@ -10,9 +10,29 @@ pipeline {
         string(name: 'email_to', defaultValue: 'email@email.com', description: 'Jenkins Notifications E-mail To')
         string(name: 'email_bcc', defaultValue: '', description: 'Jenkins Notifications E-mail Bcc')
         string(name: 'email_cc', defaultValue: 'email@email.com', description: 'Jenkins Notifications E-mail Cc')
+        string(name: 'use_docker', defaultValue: 'true', description: 'use_docker true/false to toggle method to execute stages')
     }
 
     stages {
+
+        stage('Abort') {
+            // Abort if its neither a commit to master branch NOR a pull request into master branch
+            when {
+                not {
+                    anyOf {
+                        branch 'master'
+                        environment name: 'CHANGE_TARGET' value: 'master'
+                    }
+                }
+            }
+            steps {
+                script {
+                    currentBuild.result = 'ABORTED'
+                    error('Aborted build since its neither a commit to master branch NOR a pull request into master branch !')
+                }
+            }
+        }
+
         stage('Init') {
             steps {
                 withCredentials([file(credentialsId: 'pipeline-test1-envFile', variable: 'envFile')]) {
@@ -22,46 +42,96 @@ pipeline {
             }
         }
 
+        stage('Install') {
+            when {
+                allOf {
+                    expression { params.use_docker != 'true' }
+                }
+            }
+            steps {
+                sh 'chmod +x ./jenkins/scripts/install.sh'
+                sh './jenkins/scripts/install.sh'
+            }
+        }
+
+        stage('Kill') {
+            // Kill if its a commit to master branch BUT not a pull request into master branch
+            when {
+                allOf {
+                    expression { params.use_docker != 'true' }
+                    branch 'master'
+                    not {
+                        environment name: 'CHANGE_TARGET' value: 'master'
+                    }
+                }
+            }
+            steps {
+                sh 'chmod +x ./jenkins/scripts/kill.sh'
+                sh './jenkins/scripts/kill.sh'
+            }
+        }
+
+        stage('Build') {
+            when {
+                allOf {
+                    expression { params.use_docker != 'true' }
+                }
+            }
+            steps {
+                sh 'chmod +x ./jenkins/scripts/build.sh'
+                sh './jenkins/scripts/build.sh'
+            }
+        }
+
+        stage('Deploy') {
+            // Deploy if its a commit to master branch BUT not a pull request into master branch
+            when {
+                allOf {
+                    expression { params.use_docker != 'true' }
+                    branch 'master'
+                    not {
+                        environment name: 'CHANGE_TARGET' value: 'master'
+                    }
+                }
+            }
+            steps {
+                sh 'chmod +x ./jenkins/scripts/deploy.sh'
+                sh 'JENKINS_NODE_COOKIE=dontKillMe ./jenkins/scripts/deploy.sh'
+            }
+        }
+
+        stage('Dockerize-test') {
+            // Dockerize-test if its NOT a commit to master branch BUT a pull request into master branch
+            when {
+                allOf {
+                    expression { params.use_docker == 'true' }
+                    branch 'master'
+                    environment name: 'CHANGE_TARGET' value: 'master'
+                }
+            }
+            steps {
+                sh 'chmod +x ./jenkins/scripts/dockerize-test.sh'
+                sh './jenkins/scripts/dockerize-test.sh'
+            }
+        }
+
         stage('Dockerize') {
+            // Dockerize if its a commit to master branch BUT not a pull request into master branch
+            when {
+                allOf {
+                    expression { params.use_docker == 'true' }
+                    branch 'master'
+                    not {
+                        environment name: 'CHANGE_TARGET' value: 'master'
+                    }
+                }
+            }
             steps {
                 sh 'chmod +x ./jenkins/scripts/dockerize.sh'
                 sh './jenkins/scripts/dockerize.sh'
             }
         }
 
-        // stage('Install') {
-        //     steps {
-        //         sh 'chmod +x ./jenkins/scripts/install.sh'
-        //         sh './jenkins/scripts/install.sh'
-        //     }
-        // }
-
-        // stage('Kill') {
-        //     when {
-        //         branch 'master'
-        //     }
-        //     steps {
-        //         sh 'chmod +x ./jenkins/scripts/kill.sh'
-        //         sh './jenkins/scripts/kill.sh'
-        //     }
-        // }
-
-        // stage('Build') {
-        //     steps {
-        //         sh 'chmod +x ./jenkins/scripts/build.sh'
-        //         sh './jenkins/scripts/build.sh'
-        //     }
-        // }
-
-        // stage('Deploy') {
-        //     when {
-        //         branch 'master'
-        //     }
-        //     steps {
-        //         sh 'chmod +x ./jenkins/scripts/deploy.sh'
-        //         sh 'JENKINS_NODE_COOKIE=dontKillMe ./jenkins/scripts/deploy.sh'
-        //     }
-        // }
     }
 
     post {
