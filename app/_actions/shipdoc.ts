@@ -333,7 +333,7 @@ export async function createShipdoc(prevState: State | unknown, formData: FormDa
             const result = await pool.request()
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('shipdoc_number', sql.VarChar, parsedForm.data.shipdoc_number)
-                            .input('shipdoc_contact', sql.Int, parsedForm.data.shipdoc_contact)
+                            .input('shipdoc_contact', sql.VarChar, parsedForm.data.shipdoc_contact)
                             .input('shipdoc_created_dt', sql.DateTime, parsedForm.data.shipdoc_created_dt)
                             .input('shipdoc_updated_dt', sql.DateTime, parsedForm.data.shipdoc_updated_dt)
                             .query`INSERT INTO "packing"."shipdoc"
@@ -410,7 +410,7 @@ export async function updateShipdoc(prevState: State | unknown, formData: FormDa
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
-                            .input('shipdoc_contact', sql.Int, parsedForm.data.shipdoc_contact)
+                            .input('shipdoc_contact', sql.VarChar, parsedForm.data.shipdoc_contact)
                             .input('shipdoc_updated_dt', sql.DateTime, parsedForm.data.shipdoc_updated_dt)
                             .query`UPDATE "packing"."shipdoc"
                                     SET shipdoc_contact = @shipdoc_contact, shipdoc_updated_dt = @shipdoc_updated_dt
