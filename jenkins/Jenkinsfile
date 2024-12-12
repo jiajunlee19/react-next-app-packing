@@ -7,10 +7,12 @@ pipeline {
     }
 
     parameters {
+        string(name: 'email_from', defaultValue: 'no-reply-jenkins@email.com', description: 'Jenkins Notifications E-mail From')
         string(name: 'email_to', defaultValue: 'email@email.com', description: 'Jenkins Notifications E-mail To')
         string(name: 'email_bcc', defaultValue: '', description: 'Jenkins Notifications E-mail Bcc')
         string(name: 'email_cc', defaultValue: 'email@email.com', description: 'Jenkins Notifications E-mail Cc')
-        string(name: 'use_docker', defaultValue: 'true', description: 'use_docker true/false to toggle method to execute stages')
+        string(name: 'env_cred', defaultValue: 'my-env-cred-id', description: 'Credential ID for secret env file')
+        booleanParam(name: 'use_docker', defaultValue: true, description: 'Toggle method to execute stages by docker or non-docker')
     }
 
     stages {
@@ -21,7 +23,7 @@ pipeline {
                 not {
                     anyOf {
                         branch 'master'
-                        environment name: 'CHANGE_TARGET' value: 'master'
+                        environment name: 'CHANGE_TARGET', value: 'master'
                     }
                 }
             }
@@ -35,7 +37,7 @@ pipeline {
 
         stage('Init') {
             steps {
-                withCredentials([file(credentialsId: 'pipeline-test1-envFile', variable: 'envFile')]) {
+                withCredentials([file(credentialsId: "${params.env_cred}", variable: 'envFile')]) {
                     sh 'cp "$envFile" "$WORKSPACE"'
                     echo "Copied envFile into $WORKSPACE !"
                 }
@@ -61,7 +63,7 @@ pipeline {
                     expression { params.use_docker != 'true' }
                     branch 'master'
                     not {
-                        environment name: 'CHANGE_TARGET' value: 'master'
+                        environment name: 'CHANGE_TARGET', value: 'master'
                     }
                 }
             }
@@ -90,7 +92,7 @@ pipeline {
                     expression { params.use_docker != 'true' }
                     branch 'master'
                     not {
-                        environment name: 'CHANGE_TARGET' value: 'master'
+                        environment name: 'CHANGE_TARGET', value: 'master'
                     }
                 }
             }
@@ -106,7 +108,7 @@ pipeline {
                 allOf {
                     expression { params.use_docker == 'true' }
                     branch 'master'
-                    environment name: 'CHANGE_TARGET' value: 'master'
+                    environment name: 'CHANGE_TARGET', value: 'master'
                 }
             }
             steps {
@@ -122,7 +124,7 @@ pipeline {
                     expression { params.use_docker == 'true' }
                     branch 'master'
                     not {
-                        environment name: 'CHANGE_TARGET' value: 'master'
+                        environment name: 'CHANGE_TARGET', value: 'master'
                     }
                 }
             }
@@ -148,7 +150,7 @@ pipeline {
                         <li>Node Name: ${env.NODE_NAME}</li> \
                     </ul> \
                     <br><br><br>Best Regards,<br>Jenkins Robot", 
-                charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
+                charset: 'UTF-8', mimeType: 'text/html', from: "${params.email_from}", to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
             }
         }  
 
@@ -165,7 +167,7 @@ pipeline {
                         <li>Node Name: ${env.NODE_NAME}</li> \
                     </ul> \
                     <br><br><br>Best Regards,<br>Jenkins Robot", 
-                charset: 'UTF-8', mimeType: 'text/html', from: 'no-reply@jenkins.com', to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
+                charset: 'UTF-8', mimeType: 'text/html', from: "${params.email_from}", to: "${params.email_to}", bcc: "${params.email_bcc}", cc: "${params.email_cc}", replyTo: "${params.email_to}";  
             }
         }  
     }
