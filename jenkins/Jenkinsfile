@@ -47,7 +47,7 @@ pipeline {
         stage('Install') {
             when {
                 allOf {
-                    expression { params.use_docker != 'true' }
+                    expression { params.use_docker != true }
                 }
             }
             steps {
@@ -60,7 +60,7 @@ pipeline {
             // Kill if its a commit to master branch BUT not a pull request into master branch
             when {
                 allOf {
-                    expression { params.use_docker != 'true' }
+                    expression { params.use_docker != true }
                     branch 'master'
                     not {
                         environment name: 'CHANGE_TARGET', value: 'master'
@@ -76,7 +76,7 @@ pipeline {
         stage('Build') {
             when {
                 allOf {
-                    expression { params.use_docker != 'true' }
+                    expression { params.use_docker != true }
                 }
             }
             steps {
@@ -89,7 +89,7 @@ pipeline {
             // Deploy if its a commit to master branch BUT not a pull request into master branch
             when {
                 allOf {
-                    expression { params.use_docker != 'true' }
+                    expression { params.use_docker != true }
                     branch 'master'
                     not {
                         environment name: 'CHANGE_TARGET', value: 'master'
@@ -106,7 +106,7 @@ pipeline {
             // Dockerize-test if its NOT a commit to master branch BUT a pull request into master branch
             when {
                 allOf {
-                    expression { params.use_docker == 'true' }
+                    expression { params.use_docker == true }
                     branch 'master'
                     environment name: 'CHANGE_TARGET', value: 'master'
                 }
@@ -121,7 +121,7 @@ pipeline {
             // Dockerize if its a commit to master branch BUT not a pull request into master branch
             when {
                 allOf {
-                    expression { params.use_docker == 'true' }
+                    expression { params.use_docker == true }
                     branch 'master'
                     not {
                         environment name: 'CHANGE_TARGET', value: 'master'
