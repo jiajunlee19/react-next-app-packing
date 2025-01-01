@@ -16,7 +16,11 @@
     @apply text-xl font-bold my-[1%] text-black dark:text-white
   }
 
-  p, span {
+  h4 {
+    @apply text-lg font-semibold my-[1%] text-black dark:text-white
+  }
+
+  p, span, .text {
     @apply text-black dark:text-white
   }
 
@@ -41,13 +45,13 @@
   }
 
   .btn-primary {
-    @apply bg-white/90 text-black
-            dark:bg-emerald-400/10 dark:text-emerald-300
+    @apply bg-white/90 text-orange-600
+            dark:bg-black dark:text-emerald-300
   }
 
   .btn-secondary {
-    @apply bg-white/90 text-black/70
-            dark:bg-emerald-400/10 dark:text-white/90
+    @apply bg-white/90 text-black
+            dark:bg-black dark:text-white/90
   }
 
   .btn-ok {
@@ -64,7 +68,7 @@
     @apply block py-[1%] font-medium text-black dark:text-white
   }
 
-  input, select {
+  input, select, textarea {
     @apply block w-full border rounded-sm p-[1%] mb-[0%] placeholder:italic
           border-black bg-white text-black
           dark:border-white dark:bg-zinc-900 dark:text-white
@@ -92,6 +96,20 @@
 
   .form-popout-hide {
     @apply -z-50 hidden
+  }
+
+  .card {
+    @apply border rounded-lg opacity-80
+    hover:transition hover:duration-300 hover:opacity-100
+    hover:active:font-bold
+    bg-gray-100 border-black/30
+    dark:bg-slate-600 dark:border-white/30
+  }
+
+  .card-tags {
+    @apply rounded-full px-3 py-1 w-min whitespace-nowrap
+    bg-slate-600 text-white
+    dark:bg-gray-100 dark:text-black
   }
 
 }

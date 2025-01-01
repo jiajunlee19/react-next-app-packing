@@ -1,3 +1,11 @@
+import { links, projects, skills, experiences } from "@/app/_libs/data";
+
+export type TSectionName = (typeof links)[number]["name"];
+export type TProject = (typeof projects)[number];
+export type TSkill = (typeof skills)[number];
+export type TExperience = (typeof experiences)[number];
+
+
 export type TFormMode = "create" | "update" | null;
 
 export type TRole = "user" | "admin" | "boss";
