@@ -21,7 +21,7 @@ export default function Intro() {
 
             <p className="my-[2%] leading-[1.5] text-balance">
                 <span>
-                    Hello, I am <b>Jia Jun Lee</b>, a complex problem-solver with automation and analytical mindset, capable of self-learn and adapts to new technology/industry skills, posses various technical skillsets and ability to apply them in solution of business problems.<br/><br/>Try to resize the browser's window size for various responsiveness view.
+                    Hello, I am <b>Jia Jun Lee</b>, a complex problem-solver with automation and analytical mindset, capable of self-learn and adapts to new technology/industry skills, posses various technical skillsets and ability to apply them in solution of business problems.<br/><br/>Try to resize the browser&apos;s window size for various responsiveness view.
                 </span>
             </p>
 

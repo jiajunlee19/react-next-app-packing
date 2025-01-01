@@ -55,7 +55,7 @@ export default async function RootLayout({
                       <p className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-nowrap">Developed by jiajunlee</p>
                       <button className="hover:bg-zinc-900/50 dark:hover:bg-white/50">
                         <Link href="/portfolio">
-                          <span className="sr-only">View Jia Jun Lee's Portfolio</span>
+                          <span className="sr-only">View Jia Jun Lee&apos;s Portfolio</span>
                           <GitHubIcon className="h-5 w-5 fill-zinc-700 dark:fill-white" />
                         </Link>
                       </button>
