@@ -2,12 +2,13 @@
 
 import { HomeIcon } from "@heroicons/react/24/outline"
 import { useSession } from "next-auth/react"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import SearchBar from "@/app/_components/basic/search_bar";
 import { usePathname } from "next/navigation"
 import { twMerge } from "tailwind-merge";
 import { CrossIcon, DarkIcon, HamburgerIcon, LightIcon, SearchIcon } from "@/app/_components/basic/icons";
+import { useThemeContext } from "@/app/_context/theme-context";
 
 export default function Header() {
 
@@ -56,33 +57,16 @@ export default function Header() {
         setIsShowNav(!isShowNav);
     };
     
-
     const handleResize = () => {
         setIsShowNav(false);
     };
     typeof window !== "undefined" && window.addEventListener("resize", handleResize);
     
-
-    const [darkMode, setDarkMode] = useState<boolean | undefined>(undefined);
+    const {darkMode, setDarkMode} = useThemeContext();
 
     const handleThemeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         setDarkMode(!darkMode);
     };
-
-    useEffect(() => {
-        if (darkMode === undefined) {
-            setDarkMode(localStorage.getItem('darkMode') === 'true');
-        }
-        else if (darkMode) {
-            localStorage.setItem('darkMode', 'true');
-            window.document.documentElement.classList.add('dark');
-        }
-        else {
-            localStorage.setItem('darkMode', 'false');
-            window.document.documentElement.classList.remove('dark');
-        }
-
-    }, [darkMode]);
 
     return (
 
