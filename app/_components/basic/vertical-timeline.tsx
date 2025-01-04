@@ -12,9 +12,6 @@ type VerticalTimelineProps = {
 
 export default function VerticalTimeline({ data }: VerticalTimelineProps) {
 
-    // https://www.youtube.com/watch?v=t5AE66WgQD0
-    // 12.04
-
     return (
 
         // vertical-timeline
