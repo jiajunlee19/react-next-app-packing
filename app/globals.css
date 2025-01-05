@@ -101,7 +101,6 @@
   .card {
     @apply border rounded-lg opacity-80
     hover:transition hover:duration-300 hover:opacity-100
-    hover:active:font-bold
     bg-gray-100 border-black/30
     dark:bg-slate-600 dark:border-white/30
   }

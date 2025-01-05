@@ -101,7 +101,7 @@ export const projects = [
       title: "PortFolio | Jia Jun Lee",
       location: "Hobby Project",
       description: "A Web Application to show case Jia Jun Lee's Portfolio, built on top of Next.js by jiajunlee.",
-      link: "https://react-next-app-jiajunlee.vercel.app/portfolio",
+      link: "https://react-next-app-template.vercel.app/portfolio",
       tags: ["React", "Next.js", "Tailwind"],
       imageUrl: portFolioImage,
   },
