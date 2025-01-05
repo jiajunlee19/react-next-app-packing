@@ -19,6 +19,7 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readBoxTypeUid } from '@/app/_actions/box_type';
 import { readShipdocUid } from '@/app/_actions/shipdoc';
 
+const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readBoxTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
@@ -103,9 +104,9 @@ export async function readBoxTotalPage(itemsPerPage: number | unknown, query?: s
                                     SELECT b.box_uid, b.box_type_uid, b.shipdoc_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact
-                                    FROM "packing"."box" b
-                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    FROM "${DB_SCHEMA}"."box" b
+                                    INNER JOIN "${DB_SCHEMA}"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "${DB_SCHEMA}"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                     WHERE b.box_status = 'active'
                                     AND (b.box_uid like @query
                                         OR bt.box_part_number like @query OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
@@ -158,16 +159,16 @@ export async function readBoxByPage(itemsPerPage: number | unknown, currentPage:
             const result = await prisma.$queryRaw`
                                 WITH gt AS (
                                     SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                    FROM "packing"."tray"
+                                    FROM "${DB_SCHEMA}"."tray"
                                     GROUP BY box_uid
                                 )
                                 SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                 bt.box_part_number, bt.box_max_tray,
                                 s.shipdoc_number, s.shipdoc_contact,
                                 CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
-                                FROM "packing"."box" b
-                                INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                FROM "${DB_SCHEMA}"."box" b
+                                INNER JOIN "${DB_SCHEMA}"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                INNER JOIN "${DB_SCHEMA}"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                 LEFT JOIN gt ON b.box_uid = gt.box_uid
                                 WHERE b.box_status = 'active'
                                 AND (
@@ -189,16 +190,16 @@ export async function readBoxByPage(itemsPerPage: number | unknown, currentPage:
                             .query`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                        FROM "packing"."tray"
+                                        FROM "${DB_SCHEMA}"."tray"
                                         GROUP BY box_uid
                                     )
                                     SELECT b.box_uid, b.box_status, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     s.shipdoc_number, s.shipdoc_contact,
                                     CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
-                                    FROM "packing"."box" b
-                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
-                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    FROM "${DB_SCHEMA}"."box" b
+                                    INNER JOIN "${DB_SCHEMA}"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    INNER JOIN "${DB_SCHEMA}"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     WHERE b.box_status = 'active'
                                     AND (b.box_uid like @query
@@ -335,10 +336,10 @@ export async function readShippedBoxTotalPage(itemsPerPage: number | unknown, qu
                                 s.shipdoc_number, s.shipdoc_contact,
                                 t.tray_uid,
                                 l.lot_id, l.lot_qty
-                                FROM "packing"."lot" l
-                                INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
-                                INNER JOIN "packing"."box" b ON t.tray_uid = b.tray_uid
-                                INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                FROM "${DB_SCHEMA}"."lot" l
+                                INNER JOIN "${DB_SCHEMA}"."tray" t ON l.tray_uid = t.tray_uid
+                                INNER JOIN "${DB_SCHEMA}"."box" b ON t.tray_uid = b.tray_uid
+                                INNER JOIN "${DB_SCHEMA}"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                 WHERE b.box_status = 'shipped'
                                 AND (b.box_uid like @query
                                     OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
@@ -509,10 +510,10 @@ export async function readShippedBoxByPage(itemsPerPage: number | unknown, curre
                                     s.shipdoc_number, s.shipdoc_contact,
                                     t.tray_uid,
                                     l.lot_id, l.lot_qty
-                                    FROM "packing"."lot" l
-                                    INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
-                                    INNER JOIN "packing"."box" b ON t.tray_uid = b.tray_uid
-                                    INNER JOIN "packing"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
+                                    FROM "${DB_SCHEMA}"."lot" l
+                                    INNER JOIN "${DB_SCHEMA}"."tray" t ON l.tray_uid = t.tray_uid
+                                    INNER JOIN "${DB_SCHEMA}"."box" b ON t.tray_uid = b.tray_uid
+                                    INNER JOIN "${DB_SCHEMA}"."shipdoc" s ON b.shipdoc_uid = s.shipdoc_uid
                                     WHERE b.box_status = 'shipped'
                                     AND (b.box_uid like @query
                                         OR s.shipdoc_number like @query OR s.shipdoc_contact like @query
@@ -606,7 +607,7 @@ export async function createBox(prevState: State | unknown, formData: FormData |
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
                             .input('box_created_dt', sql.DateTime, parsedForm.data.box_created_dt)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
-                            .query`INSERT INTO "packing"."box" 
+                            .query`INSERT INTO "${DB_SCHEMA}"."box" 
                                     (box_uid, box_type_uid, shipdoc_uid, box_status, box_created_dt, box_updated_dt)
                                     VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_created_dt, @box_updated_dt);
                             `;
@@ -682,7 +683,7 @@ export async function updateBox(prevState: State | unknown, formData: FormData |
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('shipdoc_uid', sql.VarChar, parsedForm.data.shipdoc_uid)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
-                            .query`UPDATE "packing"."box" 
+                            .query`UPDATE "${DB_SCHEMA}"."box" 
                                     SET shipdoc_uid = @shipdoc_uid, box_updated_dt = @box_updated_dt
                                     WHERE box_uid = @box_uid;
                             `;
@@ -742,7 +743,7 @@ export async function deleteBox(box_uid: string | unknown): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
-                            .query`DELETE FROM "packing"."box" 
+                            .query`DELETE FROM "${DB_SCHEMA}"."box" 
                                     WHERE box_uid = @box_uid;
                             `;
         }
@@ -786,15 +787,15 @@ export async function readBoxById(box_uid: string | unknown) {
             const result: any = await prisma.$queryRaw`
                                 WITH gt AS (
                                     SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                    FROM "packing"."tray"
+                                    FROM "${DB_SCHEMA}"."tray"
                                     WHERE box_uid = UUID(${parsedInput.data.box_uid})
                                     GROUP BY box_uid
                                 )
                                 SELECT b.box_uid, b.box_type_uid, b.box_status, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                 bt.box_part_number, bt.box_max_tray,
                                 CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray
-                                FROM "packing"."box" b
-                                INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                FROM "${DB_SCHEMA}"."box" b
+                                INNER JOIN "${DB_SCHEMA}"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                 LEFT JOIN gt ON b.box_uid = gt.box_uid
                                 WHERE b.box_uid = UUID(${parsedInput.data.box_uid});
                             `;
@@ -807,15 +808,15 @@ export async function readBoxById(box_uid: string | unknown) {
                             .query`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                        FROM "packing"."tray"
+                                        FROM "${DB_SCHEMA}"."tray"
                                         WHERE box_uid = @box_uid
                                         GROUP BY box_uid
                                     )
                                     SELECT b.box_uid, b.box_status, b.box_type_uid, b.shipdoc_uid, b.box_created_dt, b.box_updated_dt,
                                     bt.box_part_number, bt.box_max_tray,
                                     CAST(COALESCE(t.box_current_tray, 0) as INT) box_current_tray
-                                    FROM "packing"."box" b
-                                    INNER JOIN "packing"."box_type" bt ON b.box_type_uid = bt.box_type_uid
+                                    FROM "${DB_SCHEMA}"."box" b
+                                    INNER JOIN "${DB_SCHEMA}"."box_type" bt ON b.box_type_uid = bt.box_type_uid
                                     LEFT JOIN t ON b.box_uid = t.box_uid
                                     WHERE b.box_uid = @box_uid;
                             `;
@@ -877,7 +878,7 @@ export async function readBoxStatusByBoxUid(box_uid: string | unknown) {
                             .input('box_uid', sql.VarChar, parsedInput.data.box_uid)
                             .query`
                                     SELECT b.box_uid, b.box_status
-                                    FROM "packing"."box" b
+                                    FROM "${DB_SCHEMA}"."box" b
                                     WHERE b.box_uid = @box_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
@@ -943,8 +944,8 @@ export async function readBoxStatusByTrayUid(tray_uid: string | unknown) {
                             .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .query`
                                     SELECT t.tray_uid, b.box_uid, b.box_status
-                                    FROM "packing"."tray" t
-                                    INNER JOIN "packing"."box" b ON t.box_uid = b.box_uid
+                                    FROM "${DB_SCHEMA}"."tray" t
+                                    INNER JOIN "${DB_SCHEMA}"."box" b ON t.box_uid = b.box_uid
                                     WHERE t.tray_uid = @tray_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
@@ -1013,9 +1014,9 @@ export async function readBoxStatusByLotUid(lot_uid: string | unknown) {
                             .input('lot_uid', sql.VarChar, parsedInput.data.lot_uid)
                             .query`
                                     SELECT l.lot_uid, t.tray_uid, b.box_uid, b.box_status
-                                    FROM "packing"."lot" l
-                                    INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
-                                    INNER JOIN "packing"."box" b ON t.box_uid = b.box_uid
+                                    FROM "${DB_SCHEMA}"."lot" l
+                                    INNER JOIN "${DB_SCHEMA}"."tray" t ON l.tray_uid = t.tray_uid
+                                    INNER JOIN "${DB_SCHEMA}"."box" b ON t.box_uid = b.box_uid
                                     WHERE l.lot_uid = @lot_uid;
                             `;
             parsedForm = readBoxSchema.safeParse(result.recordset[0]);
@@ -1061,20 +1062,20 @@ export async function checkBoxShippableById(box_uid: string | unknown) {
             const result: any = await prisma.$queryRaw`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                        FROM "packing"."tray"
+                                        FROM "${DB_SCHEMA}"."tray"
                                         WHERE box_uid = UUID(${parsedInput.data.box_uid})
                                         GROUP BY box_uid
                                     ),
                                     gl AS (
                                         SELECT t.box_uid, CAST(SUM(l.lot_qty) as INT) box_current_drive
-                                        FROM "packing"."lot" l
-                                        INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                        FROM "${DB_SCHEMA}"."lot" l
+                                        INNER JOIN "${DB_SCHEMA}"."tray" t ON l.tray_uid = t.tray_uid
                                         GROUP BY t.box_uid
                                     ) 
                                     SELECT b.box_uid,
                                     CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray,
                                     CAST(COALESCE(gl.box_current_drive, 0) as INT) box_current_drive
-                                    FROM "packing"."box" b
+                                    FROM "${DB_SCHEMA}"."box" b
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     LEFT JOIN gl ON b.box_uid = gl.box_uid
                                     WHERE b.box_uid = UUID(${parsedInput.data.box_uid});
@@ -1088,20 +1089,20 @@ export async function checkBoxShippableById(box_uid: string | unknown) {
                             .query`
                                     WITH gt AS (
                                         SELECT box_uid, CAST(COUNT(tray_uid) as INT) box_current_tray
-                                        FROM "packing"."tray"
+                                        FROM "${DB_SCHEMA}"."tray"
                                         WHERE box_uid = @box_uid
                                         GROUP BY box_uid
                                     ),
                                     gl AS (
                                         SELECT t.box_uid, CAST(SUM(l.lot_qty) as INT) box_current_drive
-                                        FROM "packing"."lot" l
-                                        INNER JOIN "packing"."tray" t ON l.tray_uid = t.tray_uid
+                                        FROM "${DB_SCHEMA}"."lot" l
+                                        INNER JOIN "${DB_SCHEMA}"."tray" t ON l.tray_uid = t.tray_uid
                                         GROUP BY t.box_uid
                                     ) 
                                     SELECT b.box_uid,
                                     CAST(COALESCE(gt.box_current_tray, 0) as INT) box_current_tray,
                                     CAST(COALESCE(gl.box_current_drive, 0) as INT) box_current_drive
-                                    FROM "packing"."box" b
+                                    FROM "${DB_SCHEMA}"."box" b
                                     LEFT JOIN gt ON b.box_uid = gt.box_uid
                                     LEFT JOIN gl ON b.box_uid = gl.box_uid
                                     WHERE b.box_uid = @box_uid;
@@ -1196,7 +1197,7 @@ export async function shipBox(box_uid: string | unknown): StatePromise {
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
-                            .query`UPDATE "packing"."box" 
+                            .query`UPDATE "${DB_SCHEMA}"."box" 
                                     SET box_status = @box_status, box_updated_dt = @box_updated_dt
                                     WHERE box_uid = @box_uid;
                             `;
@@ -1247,7 +1248,7 @@ export async function undoShipBox(box_uid: string | unknown): StatePromise {
                             .input('box_uid', sql.VarChar, parsedForm.data.box_uid)
                             .input('box_status', sql.VarChar, parsedForm.data.box_status)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.box_updated_dt)
-                            .query`UPDATE "packing"."box" 
+                            .query`UPDATE "${DB_SCHEMA}"."box" 
                                     SET box_status = @box_status, box_updated_dt = @box_updated_dt
                                     WHERE box_uid = @box_uid;
                             `;
