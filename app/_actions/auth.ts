@@ -20,6 +20,7 @@ import { type StatePromise } from '@/app/_libs/types';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 import ldap_client from "@/app/_libs/ldap";
 
+const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readUserByUsername(username: TUsernameSchema | unknown) {
@@ -63,7 +64,7 @@ export async function readUserByUsername(username: TUsernameSchema | unknown) {
             const result = await pool.request()
                             .input('username', sql.VarChar, parsedForm.data)
                             .query`SELECT user_uid, username, role
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE username = @username;
                             `;
             parsedResult = readUserWithoutPassSchema.safeParse(result.recordset[0]);
@@ -123,7 +124,7 @@ export async function readUserByUsernameAdmin(username: TUsernameSchema | unknow
             const result = await pool.request()
                             .input('username', sql.VarChar, parsedForm.data)
                             .query`SELECT user_uid, username, role
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE username = @username and role !== 'boss';
                             `;
             parsedResult = readUserWithoutPassAdminSchema.safeParse(result.recordset[0]);
@@ -191,7 +192,7 @@ export async function readUserTotalPage(itemsPerPage: number | unknown, query?: 
             const result = await pool.request()
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, username, role 
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE (user_uid like @query OR username like @query);
                             `;
             parsedForm = readUserWithoutPassSchema.array().safeParse(result.recordset);
@@ -274,7 +275,7 @@ export async function readUserByPage(itemsPerPage: number | unknown, currentPage
                             .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, username, role 
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE (user_uid like @query OR username like @query)
                                     ORDER BY username asc
                                     OFFSET @offset ROWS
@@ -349,7 +350,7 @@ export async function readAdminTotalPage(itemsPerPage: number | unknown, query?:
                             .input('role', sql.VarChar, 'admin')
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, username, role 
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE role = @role
                                     AND (username like @query);
                             `;
@@ -435,7 +436,7 @@ export async function readAdminByPage(itemsPerPage: number | unknown, currentPag
                             .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT user_uid, username, role 
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE role = @role
                                     AND (username like @query)
                                     ORDER BY username asc
@@ -501,7 +502,7 @@ export async function signIn(username: TUsernameSchema | unknown, password: TPas
             const result = await pool.request()
                             .input('username', sql.VarChar, parsedForm.data.username)
                             .query`SELECT user_uid, username, password, role
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE username = @username;
                             `;
             parsedResult = readUserSchema.safeParse(result.recordset[0]);
@@ -624,7 +625,7 @@ export async function updateUserLDAP(username: TUsernameSchema | unknown, passwo
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
                             .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
-                            .query`UPDATE "packing"."user" 
+                            .query`UPDATE "${DB_SCHEMA}"."user" 
                                     SET password = @password, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
@@ -683,7 +684,7 @@ export async function signUp(username: TUsernameSchema | unknown, password: TPas
                             .input('role', sql.VarChar, parsedForm.data.role)
                             .input('user_created_dt', sql.DateTime, parsedForm.data.user_created_dt)
                             .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
-                            .query`INSERT INTO "packing"."user" 
+                            .query`INSERT INTO "${DB_SCHEMA}"."user" 
                                     (user_uid, username, password, role, user_created_dt, user_updated_dt)
                                     VALUES (@user_uid, @username, @password, @role, @user_created_dt, @user_updated_dt);
                             `;
@@ -755,7 +756,7 @@ export async function updateUser(formData: FormData | unknown): StatePromise {
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('password', sql.VarChar, await bcrypt.hash(parsedForm.data.password, 10),)
                             .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
-                            .query`UPDATE "packing"."user" 
+                            .query`UPDATE "${DB_SCHEMA}"."user" 
                                     SET password = @password, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
@@ -815,7 +816,7 @@ export async function deleteUser(user_uid: string | unknown): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
-                            .query`DELETE FROM "packing"."user" 
+                            .query`DELETE FROM "${DB_SCHEMA}"."user" 
                                     WHERE user_uid = @user_uid;
                             `;
         }
@@ -875,7 +876,7 @@ export async function readUserById(user_uid: string | unknown) {
             const result = await pool.request()
                             .input('user_uid', sql.VarChar, parsedInput.data.user_uid)
                             .query`SELECT user_uid, username, role, user_created_dt, user_updated_dt 
-                                    FROM "packing"."user"
+                                    FROM "${DB_SCHEMA}"."user"
                                     WHERE user_uid = @user_uid;
                             `;
             parsedForm = readUserWithoutPassSchema.safeParse(result.recordset[0]);
@@ -949,7 +950,7 @@ export async function updateRole(formData: FormData | unknown): StatePromise {
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('role', sql.VarChar, parsedForm.data.role)
                             .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
-                            .query`UPDATE "packing"."user" 
+                            .query`UPDATE "${DB_SCHEMA}"."user" 
                                     SET role = @role, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid;
                             `;
@@ -1024,7 +1025,7 @@ export async function updateRoleAdmin(formData: FormData | unknown): StatePromis
                             .input('user_uid', sql.VarChar, parsedForm.data.user_uid)
                             .input('role', sql.VarChar, parsedForm.data.role)
                             .input('user_updated_dt', sql.DateTime, parsedForm.data.user_updated_dt)
-                            .query`UPDATE "packing"."user" 
+                            .query`UPDATE "${DB_SCHEMA}"."user" 
                                     SET role = @role, user_updated_dt = @user_updated_dt
                                     WHERE user_uid = @user_uid and role !== 'boss';
                             `;

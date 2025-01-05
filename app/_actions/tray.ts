@@ -19,6 +19,7 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayTypeUid } from '@/app/_actions/tray_type';
 import { readBoxById, readBoxStatusByBoxUid, readBoxStatusByTrayUid } from '@/app/_actions/box';
 
+const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readTrayTotalPage(itemsPerPage: number | unknown, query?: string | unknown, box_uid?: string | unknown) {

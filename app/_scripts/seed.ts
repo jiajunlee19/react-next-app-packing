@@ -10,6 +10,8 @@ import { getErrorMessage } from "@/app/_libs/error_handler";
 import bcrypt from 'bcryptjs';
 import { createLotSchema, createTraySchema, createBoxSchema, createShipdocSchema, createTrayTypeSchema, createBoxTypeSchema } from "@/app/_libs/zod_server";
 
+const DB_SCHEMA = parsedEnv.DB_SCHEMA;
+
 async function seedUser() {
 
     const parsedForm = signUpSchema.array().safeParse(users);
@@ -36,7 +38,7 @@ async function seedUser() {
                 .input('role', sql.VarChar, d.role)
                 .input('user_created_dt', sql.DateTime, d.user_created_dt)
                 .input('user_updated_dt', sql.DateTime, d.user_updated_dt)
-                .query`INSERT INTO "packing"."user" 
+                .query`INSERT INTO "${DB_SCHEMA}"."user" 
                         (user_uid, username, password, role, user_created_dt, user_updated_dt)
                         VALUES (@user_uid, @username, @password, @role, @user_created_dt, @user_updated_dt);
                 `;
@@ -76,7 +78,7 @@ async function seedBoxType() {
                 .input('box_max_tray', sql.Int, d.box_max_tray)
                 .input('box_type_created_dt', sql.DateTime, d.box_type_created_dt)
                 .input('box_type_updated_dt', sql.DateTime, d.box_type_updated_dt)
-                .query`INSERT INTO "packing"."box_type" 
+                .query`INSERT INTO "${DB_SCHEMA}"."box_type" 
                         (box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt)
                         VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_created_dt, @box_type_updated_dt);
                 `;
@@ -114,7 +116,7 @@ async function seedTrayType() {
                 .input('tray_max_drive', sql.Int, d.tray_max_drive)
                 .input('tray_type_created_dt', sql.DateTime, d.tray_type_created_dt)
                 .input('tray_type_updated_dt', sql.DateTime, d.tray_type_updated_dt)
-                .query`INSERT INTO "packing"."@tray_type" 
+                .query`INSERT INTO "${DB_SCHEMA}"."@tray_type" 
                         (tray_type_uid, tray_part_number, tray_max_drive, tray_type_created_dt, tray_type_updated_dt)
                         VALUES (@tray_type_uid, @tray_part_number, @tray_max_drive, @tray_type_created_dt, @tray_type_updated_dt);
                 `;
@@ -152,7 +154,7 @@ async function seedShipdoc() {
                 .input('shipdoc_contact', sql.VarChar, d.shipdoc_contact)
                 .input('shipdoc_created_dt', sql.DateTime, d.shipdoc_created_dt)
                 .input('shipdoc_updated_dt', sql.DateTime, d.shipdoc_updated_dt)
-                .query`INSERT INTO "packing"."shipdoc" 
+                .query`INSERT INTO "${DB_SCHEMA}"."shipdoc" 
                         (shipdoc_uid, shipdoc_number, shipdoc_contact, shipdoc_created_dt, shipdoc_updated_dt)
                         VALUES (@shipdoc_uid, @shipdoc_number, @shipdoc_contact, @shipdoc_created_dt, @shipdoc_updated_dt);
                 `;
@@ -191,7 +193,7 @@ async function seedBox() {
                 .input('box_status', sql.VarChar, d.box_status)
                 .input('box_created_dt', sql.DateTime, d.box_created_dt)
                 .input('box_updated_dt', sql.DateTime, d.box_updated_dt)
-                .query`INSERT INTO "packing"."box" 
+                .query`INSERT INTO "${DB_SCHEMA}"."box" 
                         (box_uid, box_type_uid, shipdoc_uid, box_status, box_created_dt, box_updated_dt)
                         VALUES (@box_uid, @box_type_uid, @shipdoc_uid, @box_status, @box_created_dt, @box_updated_dt);
                 `;
@@ -229,7 +231,7 @@ async function seedTray() {
                 .input('tray_type_uid', sql.VarChar, d.tray_type_uid)
                 .input('tray_created_dt', sql.DateTime, d.tray_created_dt)
                 .input('tray_updated_dt', sql.DateTime, d.tray_updated_dt)
-                .query`INSERT INTO "packing"."@tray" 
+                .query`INSERT INTO "${DB_SCHEMA}"."@tray" 
                         (tray_uid, box_uid, tray_type_uid, tray_created_dt, tray_updated_dt)
                         VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_created_dt, @tray_updated_dt);
                 `;
@@ -268,7 +270,7 @@ async function seedLot() {
                 .input('lot_qty', sql.Int, d.lot_qty)
                 .input('lot_created_dt', sql.DateTime, d.lot_created_dt)
                 .input('lot_updated_dt', sql.DateTime, d.lot_updated_dt)
-                .query`INSERT INTO "packing"."lot" 
+                .query`INSERT INTO "${DB_SCHEMA}"."lot" 
                         (lot_uid, tray_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt)
                         VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_created_dt, @lot_updated_dt);
                 `;

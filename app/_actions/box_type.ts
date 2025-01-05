@@ -17,6 +17,7 @@ import { StatePromise, type State } from '@/app/_libs/types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { flattenNestedObject } from '@/app/_libs/nested_object';
 
+const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query?: string | unknown) {
@@ -65,7 +66,7 @@ export async function readBoxTypeTotalPage(itemsPerPage: number | unknown, query
             const result = await pool.request()
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
-                                    FROM "packing"."box_type"
+                                    FROM "${DB_SCHEMA}"."box_type"
                                     WHERE (box_type_uid like @query OR box_part_number like @query);
                             `;
             parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
@@ -142,7 +143,7 @@ export async function readBoxTypeByPage(itemsPerPage: number | unknown, currentP
                             .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
-                                    FROM "packing"."box_type"
+                                    FROM "${DB_SCHEMA}"."box_type"
                                     WHERE (box_type_uid like @query OR box_part_number like @query)
                                     ORDER BY box_part_number asc
                                     OFFSET @offset ROWS
@@ -198,7 +199,7 @@ export async function readBoxType() {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
-                                    FROM "packing"."box_type";
+                                    FROM "${DB_SCHEMA}"."box_type";
                             `;
             parsedForm = readBoxTypeSchema.array().safeParse(result.recordset);
         }
@@ -259,7 +260,7 @@ export async function readBoxTypeUid(box_part_number: string | unknown) {
             const result = await pool.request()
                             .input('box_part_number', sql.VarChar, parsedInput.data.box_part_number)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
-                                    FROM "packing"."box_type"
+                                    FROM "${DB_SCHEMA}"."box_type"
                                     WHERE box_part_number = @box_part_number;
                             `;
             parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
@@ -336,7 +337,7 @@ export async function createBoxType(prevState: State | unknown, formData: FormDa
                             .input('box_max_tray', sql.Int, parsedForm.data.box_max_tray)
                             .input('box_type_created_dt', sql.DateTime, parsedForm.data.box_type_created_dt)
                             .input('box_type_updated_dt', sql.DateTime, parsedForm.data.box_type_updated_dt)
-                            .query`INSERT INTO "packing"."box_type" 
+                            .query`INSERT INTO "${DB_SCHEMA}"."box_type" 
                                     (box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt)
                                     VALUES (@box_type_uid, @box_part_number, @box_max_tray, @box_type_created_dt, @box_type_updated_dt);
                             `;
@@ -412,7 +413,7 @@ export async function updateBoxType(prevState: State | unknown, formData: FormDa
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
                             .input('box_max_tray', sql.Int, parsedForm.data.box_max_tray)
                             .input('box_type_updated_dt', sql.DateTime, parsedForm.data.box_type_updated_dt)
-                            .query`UPDATE "packing"."box_type" 
+                            .query`UPDATE "${DB_SCHEMA}"."box_type" 
                                     SET box_max_tray = @box_max_tray, box_type_updated_dt = @box_type_updated_dt
                                     WHERE box_type_uid = @box_type_uid;
                             `;
@@ -472,7 +473,7 @@ export async function deleteBoxType(box_type_uid: string): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('box_type_uid', sql.VarChar, parsedForm.data.box_type_uid)
-                            .query`DELETE FROM "packing"."box_type" 
+                            .query`DELETE FROM "${DB_SCHEMA}"."box_type" 
                                     WHERE box_type_uid = @box_type_uid;
                             `;
         }
@@ -525,7 +526,7 @@ export async function readBoxTypeById(box_type_uid: string) {
             const result = await pool.request()
                             .input('box_type_uid', sql.VarChar, parsedInput.data.box_type_uid)
                             .query`SELECT box_type_uid, box_part_number, box_max_tray, box_type_created_dt, box_type_updated_dt 
-                                    FROM "packing"."box_type"
+                                    FROM "${DB_SCHEMA}"."box_type"
                                     WHERE box_type_uid = @box_type_uid;
                             `;
             parsedForm = readBoxTypeSchema.safeParse(result.recordset[0]);
