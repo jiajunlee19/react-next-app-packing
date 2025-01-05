@@ -29,7 +29,7 @@ export default function Intro() {
                 <Link className="group btn btn-primary no-underline flex items-center justify-center gap-1 px-4 hover:scale-110" href="/portfolio/#contacts">
                     Contact Me <ArrowRightIcon className="h-4 group-hover:translate-x-1 transition" />
                 </Link>
-                <Link className="btn btn-secondary no-underline flex items-center justify-center gap-1 px-4 hover:scale-110" href="/CV.pdf" target="_blank" rel="noopener noreferrer" locale={false}>
+                <Link className="btn btn-secondary no-underline flex items-center justify-center gap-1 px-4 hover:scale-110" href="/Jia Jun Lee's CV.pdf" target="_blank" rel="noopener noreferrer" locale={false}>
                     Download CV <ArrowDownTrayIcon className="h-4" />
                 </Link>
                 <Link className="btn btn-secondary no-underline hover:scale-125" href="https://github.com/jiajunlee19" target="_blank" rel="noopener noreferrer">

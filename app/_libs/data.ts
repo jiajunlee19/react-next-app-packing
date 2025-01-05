@@ -1,8 +1,7 @@
 import React from "react";
 import { ArchiveBoxXMarkIcon } from "@heroicons/react/24/outline";
-import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
 import portFolioImage from '@/public/portfolio.png';
-import solderPasteImage from '@/public/Solder Paste.png';
+import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
 import bomProgramCreateImage from '@/public/bom-program-create.png';
 import swrProgramCreateImage from '@/public/swr-program-create.png';
 import pnpProgramCheckerImage from '@/public/pnp-program-checker.png';
@@ -10,6 +9,7 @@ import automatedMAMBOMCreationImage from '@/public/Automated_MAM_BOM_Creation.pn
 import dataIngestionPipelineImage from '@/public/Data_Ingestion_Pipeline.png';
 import automatedJIRAIssueCreationImage from '@/public/Automated_JIRA_Issue_Creation.png';
 import reactNextAppPackingImage from '@/public/react-next-app-packing.png';
+import solderPasteImage from '@/public/Solder Paste.png';
 
 
 export const links = [
@@ -90,28 +90,20 @@ export const skills = [
 
 export const projects = [
   {
+      title: "PortFolio | Jia Jun Lee",
+      location: "Hobby Project",
+      description: "A Web Application to show case Jia Jun Lee's Portfolio, built on top of Next.js by jiajunlee.",
+      link: "/portfolio",
+      tags: ["React", "Next.js", "Tailwind"],
+      imageUrl: portFolioImage,
+  },
+  {
       title: "react-next-app-template",
       location: "Hobby Project",
       description: "A developer template of react-next-app, with best practices and methods to ease app development, built on top of Next.js by jiajunlee.",
       link: "https://github.com/jiajunlee19/react-next-app-template",
       tags: ["React", "Next.js", "PostgreSQL", "Tailwind", "Prisma", "Docker", "Jenkins"],
       imageUrl: reactNextAppTemplateImage,
-  },
-  {
-      title: "PortFolio | Jia Jun Lee",
-      location: "Hobby Project",
-      description: "A Web Application to show case Jia Jun Lee's Portfolio, built on top of Next.js by jiajunlee.",
-      link: "https://react-next-app-template.vercel.app/portfolio",
-      tags: ["React", "Next.js", "Tailwind"],
-      imageUrl: portFolioImage,
-  },
-  {
-    title: "Low Temp Solder Paste Enablement and Integration",
-    location: "Micron Technology, Penang, Malaysia",
-    description: "Develop, qualify and enable Low-Temp Solder Paste (LTS) to be integrated on SSD product. Project details are highly Micron Confidential, the image or link below is for reference only.",
-    link: "https://www.optimatech.net/knowledge-center/low-temperature-solder-paste.aspx#:~:text=Tin%2Fbismuth%2C%20tin%2Findium,tin%20%2F%20lead%2037%25%20solder.",
-    tags: ["SMT", "Solder Paste", "Characterization", "Reliability"],
-    imageUrl: solderPasteImage,
   },
   {
     title: "Script-Automated non-Proto BOM Recipe Creation",
@@ -168,5 +160,13 @@ export const projects = [
     link: "https://github.com/jiajunlee19/react-next-app-packing",
     tags: ["React", "Next.js", "Tailwind", "MSSQL"],
     imageUrl: reactNextAppPackingImage,
+  },
+  {
+    title: "Low Temp Solder Paste Enablement and Integration",
+    location: "Micron Technology, Penang, Malaysia",
+    description: "Develop, qualify and enable Low-Temp Solder Paste (LTS) to be integrated on SSD product. Project details are highly Micron Confidential, the image or link below is for reference only.",
+    link: "https://www.optimatech.net/knowledge-center/low-temperature-solder-paste.aspx#:~:text=Tin%2Fbismuth%2C%20tin%2Findium,tin%20%2F%20lead%2037%25%20solder.",
+    tags: ["SMT", "Solder Paste", "Characterization", "Reliability"],
+    imageUrl: solderPasteImage,
   },
 ] as const;
