@@ -19,7 +19,6 @@ export const envSchema = z.object({
     DB_HOST: z.string().min(1),
     DB_PASSWORD: z.string().min(1),
     DB_DATABASE: z.string().min(1),
-    DB_SCHEMA: z.string().min(1),
 
     // Next Auth
     NEXTAUTH_URL: z.string().min(1).url(),

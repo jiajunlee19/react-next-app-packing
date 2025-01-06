@@ -19,7 +19,6 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayTypeUid } from '@/app/_actions/tray_type';
 import { readBoxById, readBoxStatusByBoxUid, readBoxStatusByTrayUid } from '@/app/_actions/box';
 
-const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readTrayTotalPage(itemsPerPage: number | unknown, query?: string | unknown, box_uid?: string | unknown) {
@@ -96,8 +95,8 @@ export async function readTrayTotalPage(itemsPerPage: number | unknown, query?: 
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT t.box_uid, t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
-                                    FROM "packing"."tray" t
-                                    INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                    FROM [packing].[tray] t
+                                    INNER JOIN [packing].[tray_type] tt ON t.tray_type_uid = tt.tray_type_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
                                         OR tt.tray_part_number like @query
@@ -158,14 +157,14 @@ export async function readTrayByPage(itemsPerPage: number | unknown, currentPage
             const result = await prisma.$queryRaw`
                                 WITH l AS (
                                     SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
-                                    FROM "packing"."lot" 
+                                    FROM [packing].[lot] 
                                     GROUP BY tray_uid
                                 )
                                 SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                 tt.tray_part_number, tt.tray_max_drive,
                                 CAST(COALESCE(l.tray_current_drive, 0) as INT) tray_current_drive
-                                FROM "packing"."tray" t
-                                INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                FROM [packing].[tray] t
+                                INNER JOIN [packing].[tray_type] tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN l ON t.tray_uid = l.tray_uid
                                 WHERE t.box_uid = UUID(${parsedInput.data.box_uid})
                                 AND (t.tray_uid||'' like ${QUERY}
@@ -187,14 +186,14 @@ export async function readTrayByPage(itemsPerPage: number | unknown, currentPage
                             .query`
                                     WITH l AS (
                                         SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
-                                        FROM "packing"."lot" 
+                                        FROM [packing].[lot] 
                                         GROUP BY tray_uid
                                     )
                                     SELECT t.box_uid, t.tray_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     CAST(COALESCE(l.tray_current_drive, 0) as INT) tray_current_drive
-                                    FROM "packing"."tray" t
-                                    INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                    FROM [packing].[tray] t
+                                    INNER JOIN [packing].[tray_type] tt ON t.tray_type_uid = tt.tray_type_uid
                                     LEFT JOIN l ON t.tray_uid = l.tray_uid
                                     WHERE t.box_uid = @box_uid
                                     AND (t.tray_uid like @query OR t.tray_type_uid like @query
@@ -300,7 +299,7 @@ export async function createTray(prevState: State | unknown, formData: FormData 
                             .input('tray_type_uid', sql.VarChar, parsedForm.data.tray_type_uid)
                             .input('tray_created_dt', sql.DateTime, parsedForm.data.tray_created_dt)
                             .input('tray_updated_dt', sql.DateTime, parsedForm.data.tray_updated_dt)
-                            .query`INSERT INTO "packing"."tray" 
+                            .query`INSERT INTO [packing].[tray] 
                                     (tray_uid, box_uid, tray_type_uid, tray_created_dt, tray_updated_dt)
                                     VALUES (@tray_uid, @box_uid, @tray_type_uid, @tray_created_dt, @tray_updated_dt);
                             `;
@@ -386,7 +385,7 @@ export async function updateTray(tray_uid: string | unknown): StatePromise {
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.tray_updated_dt)
-                            .query`UPDATE "packing"."tray" 
+                            .query`UPDATE [packing].[tray] 
                                     SET tray_updated_dt = @tray_updated_dt
                                     WHERE tray_uid = @tray_uid;
                             `;
@@ -465,7 +464,7 @@ export async function deleteTray(tray_uid: string | unknown): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('tray_uid', sql.VarChar, parsedForm.data.tray_uid)
-                            .query`DELETE FROM "packing"."tray" 
+                            .query`DELETE FROM [packing].[tray] 
                                     WHERE tray_uid = @tray_uid;
                             `;
         }
@@ -508,15 +507,15 @@ export async function readTrayById(tray_uid: string | unknown) {
             const result: any = await prisma.$queryRaw`
                                 WITH gl AS (
                                     SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
-                                    FROM "packing"."lot" 
+                                    FROM [packing].[lot] 
                                     WHERE tray_uid = UUID(${parsedInput.data.tray_uid})
                                     GROUP BY tray_uid
                                 )
                                 SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                 tt.tray_part_number, tt.tray_max_drive,
                                 CAST(COALESCE(gl.tray_current_drive, 0) as INT) tray_current_drive
-                                FROM "packing"."tray" t
-                                INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                FROM [packing].[tray] t
+                                INNER JOIN [packing].[tray_type] tt ON t.tray_type_uid = tt.tray_type_uid
                                 LEFT JOIN gl ON t.tray_uid = gl.tray_uid
                                 WHERE t.tray_uid = UUID(${parsedInput.data.tray_uid});
                             `;
@@ -529,15 +528,15 @@ export async function readTrayById(tray_uid: string | unknown) {
                             .query`
                                     WITH gl AS (
                                         SELECT tray_uid, CAST(SUM(lot_qty) as INT) tray_current_drive
-                                        FROM "packing"."lot" 
+                                        FROM [packing].[lot] 
                                         WHERE tray_uid = @tray_uid
                                         GROUP BY tray_uid
                                     )
                                     SELECT t.tray_uid, t.tray_type_uid, t.tray_created_dt, t.tray_updated_dt,
                                     tt.tray_part_number, tt.tray_max_drive,
                                     CAST(COALESCE(gl.tray_current_drive, 0) as INT) tray_current_drive
-                                    FROM "packing"."tray" t
-                                    INNER JOIN "packing"."tray_type" tt ON t.tray_type_uid = tt.tray_type_uid
+                                    FROM [packing].[tray] t
+                                    INNER JOIN [packing].[tray_type] tt ON t.tray_type_uid = tt.tray_type_uid
                                     LEFT JOIN gl ON t.tray_uid = gl.tray_uid
                                     WHERE t.tray_uid = @tray_uid;
                             `;

@@ -19,7 +19,6 @@ import { flattenNestedObject } from '@/app/_libs/nested_object';
 import { readTrayById } from '@/app/_actions/tray';
 import { readBoxStatusByLotUid, readBoxStatusByTrayUid } from '@/app/_actions/box';
 
-const DB_SCHEMA = parsedEnv.DB_SCHEMA;
 const UUID5_SECRET = uuidv5(parsedEnv.UUID5_NAMESPACE, uuidv5.DNS);
 
 export async function readLotTotalPage(itemsPerPage: number | unknown, query?: string | unknown, tray_uid?: string | unknown) {
@@ -89,8 +88,8 @@ export async function readLotTotalPage(itemsPerPage: number | unknown, query?: s
                             .input('tray_uid', sql.VarChar, parsedInput.data.tray_uid)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
-                                    FROM "${DB_SCHEMA}"."lot" l
-                                    INNER JOIN "${DB_SCHEMA}"."box" b ON l.tray_uid = b.tray_uid
+                                    FROM [packing].[lot] l
+                                    INNER JOIN [packing].[box] b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
                                     AND (lot_uid like @query OR lot_id like @query);
                             `;
@@ -189,8 +188,8 @@ export async function readLotByPage(itemsPerPage: number | unknown, currentPage:
                             .input('limit', sql.Int, parsedItemsPerPage)
                             .input('query', sql.VarChar, QUERY)
                             .query`SELECT b.box_uid, l.tray_uid, l.lot_uid, l.lot_id, l.lot_qty, l.lot_created_dt, l.lot_updated_dt
-                                    FROM "${DB_SCHEMA}"."lot" l
-                                    INNER JOIN "${DB_SCHEMA}"."box" b ON l.tray_uid = b.tray_uid
+                                    FROM [packing].[lot] l
+                                    INNER JOIN [packing].[box] b ON l.tray_uid = b.tray_uid
                                     WHERE tray_uid = @tray_uid
                                     AND (lot_uid like @query OR lot_id like @query)
                                     ORDER BY lot_updated_dt desc
@@ -293,7 +292,7 @@ export async function createLot(prevState: State | unknown, formData: FormData |
                             .input('lot_qty', sql.Int, parsedForm.data.lot_qty)
                             .input('lot_created_dt', sql.DateTime, parsedForm.data.lot_created_dt)
                             .input('lot_updated_dt', sql.DateTime, parsedForm.data.lot_updated_dt)
-                            .query`INSERT INTO "${DB_SCHEMA}"."lot" 
+                            .query`INSERT INTO [packing].[lot] 
                                     (lot_uid, tray_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt)
                                     VALUES (@lot_uid, @tray_uid, @lot_id, @lot_qty, @lot_created_dt, @lot_updated_dt);
                             `;
@@ -381,7 +380,7 @@ export async function updateLot(prevState: State | unknown, formData: FormData |
                             .input('lot_uid', sql.VarChar, parsedForm.data.lot_uid)
                             .input('lot_qty', sql.Int, parsedForm.data.lot_qty)
                             .input('box_updated_dt', sql.DateTime, parsedForm.data.lot_updated_dt)
-                            .query`UPDATE "${DB_SCHEMA}"."lot" 
+                            .query`UPDATE [packing].[lot] 
                                     SET lot_qty = @lot_qty, lot_updated_dt = @lot_updated_dt
                                     WHERE lot_uid = @lot_uid;
                             `;
@@ -452,7 +451,7 @@ export async function deleteLot(lot_uid: string | unknown): StatePromise {
             let pool = await sql.connect(sqlConfig);
             const result = await pool.request()
                             .input('lot_uid', sql.VarChar, parsedForm.data.lot_uid)
-                            .query`DELETE FROM "${DB_SCHEMA}"."lot" 
+                            .query`DELETE FROM [packing].[lot] 
                                     WHERE lot_uid = @lot_uid;
                             `;
         }
@@ -505,7 +504,7 @@ export async function readLotById(lot_uid: string | unknown) {
             const result = await pool.request()
                             .input('lot_uid', sql.VarChar, parsedInput.data.lot_uid)
                             .query`SELECT lot_uid, lot_id, lot_qty, lot_created_dt, lot_updated_dt 
-                                    FROM "${DB_SCHEMA}"."lot"
+                                    FROM [packing].[lot]
                                     WHERE lot_uid = @lot_uid;
                             `;
             parsedForm = readLotSchema.safeParse(result.recordset[0]);
