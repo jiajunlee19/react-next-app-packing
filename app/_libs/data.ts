@@ -2,6 +2,7 @@ import React from "react";
 import { ArchiveBoxXMarkIcon } from "@heroicons/react/24/outline";
 import portFolioImage from '@/public/portfolio.png';
 import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
+import reactNextAppCardGameImage from '@/public/react-next-app-card-game.png';
 import bomProgramCreateImage from '@/public/bom-program-create.png';
 import swrProgramCreateImage from '@/public/swr-program-create.png';
 import pnpProgramCheckerImage from '@/public/pnp-program-checker.png';
@@ -94,7 +95,7 @@ export const projects = [
       location: "Hobby Project",
       description: "A Web Application to show case Jia Jun Lee's Portfolio, built on top of Next.js by jiajunlee.",
       link: "/portfolio",
-      tags: ["React", "Next.js", "Tailwind"],
+      tags: ["React", "Next.js", "Typescript", "Tailwind"],
       imageUrl: portFolioImage,
   },
   {
@@ -102,9 +103,17 @@ export const projects = [
       location: "Hobby Project",
       description: "A developer template of react-next-app, with best practices and methods to ease app development, built on top of Next.js by jiajunlee.",
       link: "https://github.com/jiajunlee19/react-next-app-template",
-      tags: ["React", "Next.js", "PostgreSQL", "Tailwind", "Prisma", "Docker", "Jenkins"],
+      tags: ["React", "Next.js", "Typescript", "PostgreSQL", "Tailwind", "Prisma", "Docker", "Jenkins"],
       imageUrl: reactNextAppTemplateImage,
   },
+  {
+    title: "react-next-app-card-game",
+    location: "Hobby Project",
+    description: "A card game collection, game plays and probability calculator, built on top of Next.js by jiajunlee.",
+    link: "https://github.com/jiajunlee19/react-next-app-card-game",
+    tags: ["React", "Next.js", "Typescript", "Tailwind"],
+    imageUrl: reactNextAppCardGameImage,
+},
   {
     title: "Script-Automated non-Proto BOM Recipe Creation",
     location: "Micron Technology, Penang, Malaysia",
