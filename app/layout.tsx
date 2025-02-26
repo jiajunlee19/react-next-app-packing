@@ -14,7 +14,7 @@ import ThemeContextProvider from '@/app/_context/theme-context'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Card Game',
+    template: '%s | Packing App',
     default: 'Title',
   },
   description: 'Developed by jiajunlee',
