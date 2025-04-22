@@ -1,17 +1,17 @@
 import React from "react";
 import { ArchiveBoxXMarkIcon } from "@heroicons/react/24/outline";
 import portFolioImage from '@/public/portfolio.png';
-import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
-import reactNextAppCardGameImage from '@/public/react-next-app-card-game.png';
+import bominatorImage from '@/public/BOMinator.png';
+import readyMSImage from '@/public/ReadyMS.png';
 import bomProgramCreateImage from '@/public/bom-program-create.png';
 import swrProgramCreateImage from '@/public/swr-program-create.png';
 import pnpProgramCheckerImage from '@/public/pnp-program-checker.png';
-import automatedMAMBOMCreationImage from '@/public/Automated_MAM_BOM_Creation.png';
 import dataIngestionPipelineImage from '@/public/Data_Ingestion_Pipeline.png';
 import automatedJIRAIssueCreationImage from '@/public/Automated_JIRA_Issue_Creation.png';
 import reactNextAppPackingImage from '@/public/react-next-app-packing.png';
 import solderPasteImage from '@/public/Solder Paste.png';
-
+import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
+import reactNextAppCardGameImage from '@/public/react-next-app-card-game.png';
 
 export const links = [
   {
@@ -53,7 +53,7 @@ export const experiences = [
     title: "SSD NPI Engineer",
     location: "Micron Technology, Penang, Malaysia",
     description:
-      "I worked as Solid State Drive (SSD) New Product Introduction (NPI) Engineer in Micron for 4 years.",
+      "I worked as Solid State Drive (SSD) New Product Introduction (NPI) Engineer in Micron for 4 years, leading high-value-stream Client SSD Projects.",
     icon: React.createElement(ArchiveBoxXMarkIcon, { className: "dark:fill-white" }),
     date: "2020 - 2024",
   },
@@ -61,7 +61,7 @@ export const experiences = [
     title: "Senior SSD NPI Engineer",
     location: "Micron Technology, Penang, Malaysia",
     description:
-      "I was promoted into Senior SSD NPI Engineer and currently present working in Micron for more than 4 years.",
+      "Currently present working in Micron for more than 4 years, leading mainstream high-performance Enterprise SSD Projects.",
     icon: React.createElement(ArchiveBoxXMarkIcon, { className: "dark:fill-white" }),
     date: "2024 - Present",
   },
@@ -87,6 +87,7 @@ export const skills = [
   "Git",
   "JIRA",
   "Confluence",
+  "Vault",
 ] as const;
 
 export const projects = [
@@ -99,21 +100,21 @@ export const projects = [
       imageUrl: portFolioImage,
   },
   {
-      title: "react-next-app-template",
-      location: "Hobby Project",
-      description: "A developer template of react-next-app, with best practices and methods to ease app development, built on top of Next.js by jiajunlee.",
-      link: "https://github.com/jiajunlee19/react-next-app-template",
-      tags: ["React", "Next.js", "Typescript", "PostgreSQL", "Tailwind", "Prisma", "Docker", "Jenkins"],
-      imageUrl: reactNextAppTemplateImage,
+    title: "High Gain Automation Project - BOMinator (Automated MAM BOM Creator)",
+    location: "Micron Technology, Penang, Malaysia",
+    description: "BOMinator combines BOM (Bill of Materials) with Terminator, its an Automated MAM BOM Creator, effectively “terminates” the traditional manual, time-consuming, and error-prone aspects of BOM creation, developed with UiPath, Python and Snowflake, significantly reduced the time taken for BOM Creation, from >2 hours per BOM into <2 minutes per BOM. Project details are Micron Confidential, the link below might be access-restricted.",
+    link: "/denied",
+    tags: ["RPA", "UiPath", "Python", "Snowflake"],
+    imageUrl: bominatorImage,
   },
   {
-    title: "react-next-app-card-game",
-    location: "Hobby Project",
-    description: "A card game collection, game plays and probability calculator, built on top of Next.js by jiajunlee.",
-    link: "https://github.com/jiajunlee19/react-next-app-card-game",
-    tags: ["React", "Next.js", "Typescript", "Tailwind"],
-    imageUrl: reactNextAppCardGameImage,
-},
+    title: "High Gain Automation Project - ReadyMS (Automated MAM / RMS Readiness Checker)",
+    location: "Micron Technology, Penang, Malaysia",
+    description: "ReadyMS combines Ready (Readiness) with MS (MAM System, with abbreviation of RMS (Recipe Management System). Its an Automated RMS/MAM Readiness Checker, designed to streamline and provide overview on MAM/RMS Readiness in Tableau Dashboard. User can easily check the overall readiness by BOM level. Project details are Micron Confidential, the link below might be access-restricted.",
+    link: "/denied",
+    tags: ["Python", "Snowflake", "Tableau"],
+    imageUrl: readyMSImage,
+  },
   {
     title: "Script-Automated non-Proto BOM Recipe Creation",
     location: "Micron Technology, Penang, Malaysia",
@@ -137,14 +138,6 @@ export const projects = [
     link: "https://github.com/jiajunlee19/pnp-program-checker",
     tags: ["Python", "Snowflake", "SMT Pick & Place"],
     imageUrl: pnpProgramCheckerImage,
-  },
-  {
-    title: "RPA Automated BOM Creation",
-    location: "Micron Technology, Penang, Malaysia",
-    description: "Significantly improve engineering productivity (>56 engineering hrs saved per week) and minimize potential manual execution errors by introducing Robotic-Process-Automated (RPA) BOM Creation, developed with UiPath. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/hidden_magician/blob/master/PortFolio/Automated%20MAM%20BOM%20Creation/README.md",
-    tags: ["RPA", "UiPath", "Snowflake"],
-    imageUrl: automatedMAMBOMCreationImage,
   },
   {
     title: "Data Ingestion Pipeline Design",
@@ -178,4 +171,20 @@ export const projects = [
     tags: ["SMT", "Solder Paste", "Characterization", "Reliability"],
     imageUrl: solderPasteImage,
   },
+  {
+    title: "react-next-app-template",
+    location: "Hobby Project",
+    description: "A developer template of react-next-app, with best practices and methods to ease app development, built on top of Next.js by jiajunlee.",
+    link: "https://github.com/jiajunlee19/react-next-app-template",
+    tags: ["React", "Next.js", "Typescript", "PostgreSQL", "Tailwind", "Prisma", "Docker", "Jenkins"],
+    imageUrl: reactNextAppTemplateImage,
+},
+{
+  title: "react-next-app-card-game",
+  location: "Hobby Project",
+  description: "A card game collection, game plays and probability calculator, built on top of Next.js by jiajunlee.",
+  link: "https://github.com/jiajunlee19/react-next-app-card-game",
+  tags: ["React", "Next.js", "Typescript", "Tailwind"],
+  imageUrl: reactNextAppCardGameImage,
+},
 ] as const;
