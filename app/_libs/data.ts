@@ -9,7 +9,6 @@ import pnpProgramCheckerImage from '@/public/pnp-program-checker.png';
 import dataIngestionPipelineImage from '@/public/Data_Ingestion_Pipeline.png';
 import automatedJIRAIssueCreationImage from '@/public/Automated_JIRA_Issue_Creation.png';
 import reactNextAppPackingImage from '@/public/react-next-app-packing.png';
-import solderPasteImage from '@/public/Solder Paste.png';
 import reactNextAppTemplateImage from '@/public/react-next-app-template.png';
 import reactNextAppCardGameImage from '@/public/react-next-app-card-game.png';
 
@@ -45,48 +44,38 @@ export const experiences = [
     title: "Electrical & Electronic Engineering",
     location: "Universiti Sains Malaysia (USM), Penang, Malaysia",
     description:
-      "I graduated as Bachelor Degree of Electrical & Electronic Engineering from USM with a CFGPA grade of 3.96 / 4.00 after 4 years of study.",
+      "I graduated as Bachelor Degree of Electrical & Electronic Engineering from USM with First Class Degree Honour CFGPA grade of 3.96 / 4.00 after 4 years of study.",
     icon: React.createElement(ArchiveBoxXMarkIcon, { className: "dark:fill-white" }),
     date: "2018 - 2020",
-  },
-  {
-    title: "SSD NPI Engineer",
-    location: "Micron Technology, Penang, Malaysia",
-    description:
-      "I worked as Solid State Drive (SSD) New Product Introduction (NPI) Engineer in Micron for 4 years, leading high-value-stream Client SSD Projects.",
-    icon: React.createElement(ArchiveBoxXMarkIcon, { className: "dark:fill-white" }),
-    date: "2020 - 2024",
   },
   {
     title: "Senior SSD NPI Engineer",
     location: "Micron Technology, Penang, Malaysia",
     description:
-      "Currently present working in Micron for more than 4 years, leading mainstream high-performance Enterprise SSD Projects.",
+      "I prototyped, developed, qualified and ramped both Client/Enterprise SSD Products from NPI to High-Volume-Manufacturing (HVM), with 100% NPI qualification success rate. I enabled Micron Penang with full-fledged capabilities by ramping the first Low-Temp Solder SSD,  first E3.S/U.2 Rigid-Flex Complex Form Factor SSDs, and first Gen 5 SSD with high capacity/performance. I improved Micron’s Capacity Flexibility by extending SSD qualification into Micron Batu Kawan, Penang as dual site qualification in parallel with Micron Prai, Penang.",
     icon: React.createElement(ArchiveBoxXMarkIcon, { className: "dark:fill-white" }),
-    date: "2024 - Present",
+    date: "2020 - Present",
   },
 ];
 
 export const skills = [
-  "UiPath RPA",
   "Python",
+  "UiPath RPA",
   "SQL",
   "Snowflake",
+  "MSSQL",
   "Tableau",
   "PowerBI",
   "React",
   "Next.js",
-  "Tailwind",
+  "Tailwind CSS",
   "TypeScript",
-  "JavaScript",
-  "HTML",
-  "CSS",
-  "Prisma",
-  "Docker",
-  "Jenkins",
   "Git",
+  "Bitbucket",
   "JIRA",
   "Confluence",
+  "Docker",
+  "Jenkins",
   "Vault",
 ] as const;
 
@@ -118,24 +107,24 @@ export const projects = [
   {
     title: "Script-Automated non-Proto BOM Recipe Creation",
     location: "Micron Technology, Penang, Malaysia",
-    description: "Improved SMT Pick & Place recipe preparation time to align with increased NPI Demand Loading, by introducing Script-Automated non-Proto BOM recipe creation. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/bom-program-create",
+    description: "Leveraged algorithm of script-automated XML modification from master recipe, to generate non-proto recipes with improved recipe preparation time and license cost saved. Project details are Micron Confidential, the link below might be access-restricted.",
+    link: "/denied",
     tags: ["Python", "SQL", "SMT Pick & Place"],
     imageUrl: bomProgramCreateImage,
   },
   {
     title: "Script-Automated SWR Recipe Creation",
     location: "Micron Technology, Penang, Malaysia",
-    description: "Improved SMT Pick & Place recipe preparation time to align with increased NPI Demand Loading, by introducing Script-Automated SWR recipe creation. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/swr-program-create",
+    description: "Leveraged algorithm of script-automated XML modification from master recipe, to generate SWR recipes with improved recipe preparation time and license cost saved. Project details are Micron Confidential, the link below might be access-restricted.",
+    link: "/denied",
     tags: ["Python", "SQL", "SMT Pick & Place"],
     imageUrl: swrProgramCreateImage,
   },
   {
     title: "Automated Recipe vs BOM Checking Algorithm",
     location: "Micron Technology, Penang, Malaysia",
-    description: "Minimized quality events & scrap cost reduction by introducing Automated Recipe vs BOM Checking Algorithm, to ensure components mounted are correct on its corresponding designators. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/pnp-program-checker",
+    description: "Minimized quality events with scrap cost reduction by introducing Automated Recipe vs BOM Checking Algorithm, to ensure components mounted are correct on its corresponding designators. Project details are Micron Confidential, the link below might be access-restricted.",
+    link: "/denied",
     tags: ["Python", "Snowflake", "SMT Pick & Place"],
     imageUrl: pnpProgramCheckerImage,
   },
@@ -143,7 +132,7 @@ export const projects = [
     title: "Data Ingestion Pipeline Design",
     location: "Micron Technology, Penang, Malaysia",
     description: "Designed Continuous full / incremental data ingestion ETL pipelines, integrated with Snowflake, to ease and automate reporting / analytical purposes.Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/hidden_magician/blob/master/PortFolio/Continous%20Data%20Ingestion%20Pipeline%20Concept%20and%20Testing/README.md",
+    link: "/denied",
     tags: ["Python", "Snowflake"],
     imageUrl: dataIngestionPipelineImage,
   },
@@ -151,7 +140,7 @@ export const projects = [
     title: "Script-Automated JIRA Issue Creation for Reject Investigation",
     location: "Micron Technology, Penang, Malaysia",
     description: "Smoothen Engineer Investigation Workflow by script automating JIRA issue creation for every drive rejected with details populated, connected to Machine Data for 1st-level story-telling of the issue. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/hidden_magician/blob/master/PortFolio/Automated%20JIRA%20Issue%20Creation%20for%20each%20drive%20rejected/README.md",
+    link: "/denied",
     tags: ["Python", "JIRA"],
     imageUrl: automatedJIRAIssueCreationImage,
   },
@@ -159,17 +148,9 @@ export const projects = [
     title: "Packing and Shipment Traceability Web App",
     location: "Micron Technology, Penang, Malaysia",
     description: "Developed full-stack web app (MSSQL-React-NextJS) for SSD packing & shipment traceability, managing the creation and association of box UID - tray UID - lot UID - drive UID with its corresponding label generated. Project details are Micron Confidential, the link below might be access-restricted.",
-    link: "https://github.com/jiajunlee19/react-next-app-packing",
+    link: "/denied",
     tags: ["React", "Next.js", "Tailwind", "MSSQL"],
     imageUrl: reactNextAppPackingImage,
-  },
-  {
-    title: "Low Temp Solder Paste Enablement and Integration",
-    location: "Micron Technology, Penang, Malaysia",
-    description: "Develop, qualify and enable Low-Temp Solder Paste (LTS) to be integrated on SSD product. Project details are highly Micron Confidential, the image or link below is for reference only.",
-    link: "https://www.optimatech.net/knowledge-center/low-temperature-solder-paste.aspx#:~:text=Tin%2Fbismuth%2C%20tin%2Findium,tin%20%2F%20lead%2037%25%20solder.",
-    tags: ["SMT", "Solder Paste", "Characterization", "Reliability"],
-    imageUrl: solderPasteImage,
   },
   {
     title: "react-next-app-template",
